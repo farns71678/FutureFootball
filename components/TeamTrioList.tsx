@@ -1,7 +1,10 @@
+import Theme from "@/constants/Theme";
 import { TeamTrio } from "@/user/teamTrio";
+import Entypo from "@expo/vector-icons/Entypo";
 import React from "react";
-import ThemedText from "./ThemedText";
-import ThemedView from "./ThemedView";
+import { Pressable, View } from "react-native";
+import TeamRow from "./TeamRow";
+import ThemedText from "./themed/ThemedText";
 
 type TeamTrioListProps = {
   trio: TeamTrio;
@@ -9,9 +12,22 @@ type TeamTrioListProps = {
 
 const TeamTrioList = ({ trio }: TeamTrioListProps) => {
   return (
-    <ThemedView type="container">
-      <ThemedText type={"subtitle"}>{trio.name} Teams</ThemedText>
-    </ThemedView>
+    <View>
+      <View style={{ flexDirection: "row", alignItems: "center", padding: 4 }}>
+        <ThemedText type={"subtitle"}>{trio.name} Teams</ThemedText>
+        <Pressable
+          style={({ pressed }) => [
+            { marginTop: 6, marginLeft: 6 },
+            pressed && { backgroundColor: Theme.subAlt },
+          ]}
+        >
+          <Entypo name="chevron-right" size={22} color={Theme.sub} />
+        </Pressable>
+      </View>
+      {trio.getTeams().map((team, index) => {
+        return <TeamRow team={team} key={trio.name + "-" + index} />;
+      })}
+    </View>
   );
 };
 

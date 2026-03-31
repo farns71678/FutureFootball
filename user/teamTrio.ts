@@ -28,5 +28,9 @@ export class TeamTrio {
         return this.teams[index];
     }
 
+    getTeams() {
+        return this.teams;
+    }
+
     
 }
