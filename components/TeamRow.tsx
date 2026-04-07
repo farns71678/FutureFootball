@@ -1,3 +1,4 @@
+import Theme from "@/constants/Theme";
 import { Team } from "@/user/team";
 import { Image } from "expo-image";
 import React from "react";
@@ -9,9 +10,10 @@ const blurhash =
 
 interface TeamRowProps {
   team: Team;
+  button?: React.JSX.Element;
 }
 
-const TeamRow = ({ team }: TeamRowProps) => {
+const TeamRow = ({ team, button }: TeamRowProps) => {
   return (
     <View style={styles.containerSecondary}>
       <View style={{ marginRight: 8 }}>
@@ -23,9 +25,10 @@ const TeamRow = ({ team }: TeamRowProps) => {
           transition={1000}
         />
       </View>
-      <View>
+      <View style={{ flex: 1, flexDirection: "row" }}>
         <ThemedText type="defaultSemiBold">{team.displayName}</ThemedText>
       </View>
+      {button || <View />}
     </View>
   );
 };
@@ -44,13 +47,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 6,
     paddingHorizontal: 10,
-    backgroundColor: "#377",
+    //backgroundColor: "#377",
+    backgroundColor: Theme.subAlt,
     borderRadius: 10,
   },
   image: {
     width: 50,
     height: 50,
-    backgroundColor: "#0553",
+    //backgroundColor: "#0553",
+    backgroundColor: Theme.main,
     borderRadius: 25,
   },
 });
