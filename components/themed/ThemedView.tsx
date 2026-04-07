@@ -32,7 +32,7 @@ const ThemedView = ({
   return (
     <View
       style={[
-        { backgroundColor: Theme.bg, paddingTop: insets.top },
+        { backgroundColor: Theme.bg, paddingTop: insets.top, paddingBottom: insets.bottom, paddingLeft: insets.left, paddingRight: insets.right },
         type == "container" ? styles.container : undefined,
         style,
       ]}

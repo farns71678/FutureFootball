@@ -15,6 +15,7 @@ export default function Index() {
         paddingVertical: 10,
         paddingHorizontal: 8,
       }}
+      safe={true}
     >
       <View
         style={{
