@@ -72,7 +72,12 @@ export type Team = {
   matches?: [];
 };
 
+// todo: separate college and nfl teams
 const teams = new Map<number, Team>();
+
+const teamArray = (): Team[] => {
+  return Array.from(teams).map((pair) => pair[1]);
+};
 
 //const fetchMap = new Map<string, any>();
 
@@ -80,7 +85,7 @@ const teams = new Map<number, Team>();
 const fetchAPIData = async (url: string) => {
   //if (fetchMap.has(url)) reu
   const apiHeaders = {
-    "x-rapiapi-host": process.env.EXPO_PUBLIC_API_HOST ?? "",
+    "x-rapidapi-host": process.env.EXPO_PUBLIC_API_HOST ?? "",
     "x-rapidapi-key": process.env.EXPO_PUBLIC_API_KEY ?? "",
   };
 
@@ -93,7 +98,25 @@ const fetchAPIData = async (url: string) => {
 /**
  * Get teams from api
  */
-const getTeams = async (league: League) => {};
+const getTeams = async (league: League): Promise<Team[]> => {
+  if (teams.size > 0) return teamArray();
+
+  const url = process.env.EXPO_PUBLIC_API_URL + "teams";
+  const data = await fetchAPIData(url);
+
+  if (Array.isArray(data)) {
+    data.forEach((team) => {
+      if (isTeamInfo(team)) {
+        const info = team as TeamInfo;
+        if (!teams.has(info.id)) teams.set(team.id, { info });
+      }
+    });
+
+    return teamArray();
+  }
+
+  return [];
+};
 
 /**
  * Get team information from api
@@ -103,7 +126,7 @@ const getTeam = async (id: number): Promise<Team | null> => {
   let team = teams.get(id);
   if (teams.get(id)) return team ?? null;
 
-  const url = process.env.EXPO_PUBLIC_API_URL + "/teams/" + id;
+  const url = process.env.EXPO_PUBLIC_API_URL + "teams/" + id;
   const data = await fetchAPIData(url);
 
   if (data && isTeamInfo(data)) {
@@ -121,3 +144,6 @@ const getTeam = async (id: number): Promise<Team | null> => {
  * @param id team id
  */
 const getTeamStats = async (id: number) => {};
+
+export { getTeam, getTeams };
+
