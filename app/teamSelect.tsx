@@ -1,10 +1,12 @@
 import { ThemedText, ThemedView } from "@/components/themed/ThemedComponents";
 import Theme from "@/constants/Theme";
 import { getTeams, League, Team, TeamInfo } from "@/user/api";
+import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Image } from "expo-image";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { FlatList, StyleSheet, TextInput, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
 
 const TeamCell = ({ team }: { team: TeamInfo }) => {
   return (
@@ -31,10 +33,15 @@ const sortTeams = (teams: Team[]) => {
   });
 };
 
-const TeamSelect = (league: League) => {
+const TeamSelect = () => {
   const [teams, setTeams] = useState(new Array(0) as Team[]);
+  const [filteredTeams, setFilteredTeams] = useState(new Array(0) as Team[]);
+  const router = useRouter();
+
+  const { league }: { league: League } = useLocalSearchParams();
 
   useEffect(() => {
+    console.log(league);
     getTeams(league)
       .then((teams) => {
         setTeams(sortTeams(teams));
@@ -43,6 +50,8 @@ const TeamSelect = (league: League) => {
         console.error(err);
       });
   }, []);
+
+  useEffect(() => {}, [teams]);
 
   return (
     <ThemedView
@@ -57,9 +66,24 @@ const TeamSelect = (league: League) => {
           alignItems: "center",
           marginBottom: 8,
           marginTop: 8,
+          width: "100%",
+          paddingHorizontal: 12,
         }}
       >
-        <ThemedText type="title">Future Football</ThemedText>
+        <Pressable
+          style={({ pressed }) => [
+            { borderRadius: "50%", marginRight: "auto", marginTop: 3 },
+            pressed && { backgroundColor: Theme.subAlt },
+          ]}
+          onPress={() => {
+            router.back();
+          }}
+        >
+          <Entypo name="chevron-left" size={26} color={Theme.text} />
+        </Pressable>
+        <ThemedText type="title" style={{ marginRight: "auto" }}>
+          Future Football
+        </ThemedText>
       </View>
 
       <View
@@ -71,6 +95,7 @@ const TeamSelect = (league: League) => {
           width: "90%",
           marginTop: 6,
           paddingHorizontal: 12,
+          marginBottom: 4,
         }}
       >
         <FontAwesome

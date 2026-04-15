@@ -1,36 +1,35 @@
+import { League } from "./api";
 import { Team } from "./team";
 
 const maxTeams = 3;
 
 export class TeamTrio {
-    name: string;
-    teams: Team[] = [];
+  league: League;
+  teams: Team[] = [];
 
-    constructor(name: string) {
-        this.name = name;
+  constructor(league: League) {
+    this.league = league;
+  }
+
+  addTeam(team: Team) {
+    if (this.teams.length < maxTeams) {
+      this.teams.push(team);
     }
+  }
 
-    addTeam(team: Team) {
-        if (this.teams.length < maxTeams) {
-            this.teams.push(team);
-        }
-    }
+  removeTeam(id: number) {
+    this.teams = this.teams.filter((t) => t.id != id);
+  }
 
-    removeTeam(id: number) {
-        this.teams = this.teams.filter(t => t.id != id);
-    }
+  size() {
+    return this.teams.length;
+  }
 
-    size() {
-        return this.teams.length;
-    }
+  getTeam(index: number) {
+    return this.teams[index];
+  }
 
-    getTeam(index: number) {
-        return this.teams[index];
-    }
-
-    getTeams() {
-        return this.teams;
-    }
-
-    
+  getTeams() {
+    return this.teams;
+  }
 }

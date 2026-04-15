@@ -75,8 +75,10 @@ export type Team = {
 // todo: separate college and nfl teams
 const teams = new Map<number, Team>();
 
-const teamArray = (): Team[] => {
-  return Array.from(teams).map((pair) => pair[1]);
+const teamArray = (league?: League): Team[] => {
+  return Array.from(teams)
+    .map((pair) => pair[1])
+    .filter((team) => !league || team.info.league === league);
 };
 
 //const fetchMap = new Map<string, any>();
@@ -99,7 +101,7 @@ const fetchAPIData = async (url: string) => {
  * Get teams from api
  */
 const getTeams = async (league: League): Promise<Team[]> => {
-  if (teams.size > 0) return teamArray();
+  if (teams.size > 0) return teamArray(league);
 
   const url = process.env.EXPO_PUBLIC_API_URL + "teams";
   const data = await fetchAPIData(url);
@@ -112,7 +114,7 @@ const getTeams = async (league: League): Promise<Team[]> => {
       }
     });
 
-    return teamArray();
+    return teamArray(league);
   }
 
   return [];

@@ -18,13 +18,18 @@ const TeamTrioList = ({ trio }: TeamTrioListProps) => {
   return (
     <View>
       <View style={{ flexDirection: "row", alignItems: "center", padding: 4 }}>
-        <ThemedText type={"subtitle"}>{trio.name} Teams</ThemedText>
+        <ThemedText type={"subtitle"}>{trio.league} Teams</ThemedText>
         <Pressable
           style={({ pressed }) => [
-            { marginTop: 6, marginLeft: 6 },
+            { marginTop: 6, marginLeft: 6, borderRadius: "50%" },
             pressed && { backgroundColor: Theme.subAlt },
           ]}
-          onPress={() => router.push("/teamSelect")}
+          onPress={() =>
+            router.push({
+              pathname: "/teamSelect",
+              params: { league: trio.league },
+            })
+          }
         >
           <Entypo name="chevron-right" size={22} color={Theme.sub} />
         </Pressable>
@@ -33,7 +38,7 @@ const TeamTrioList = ({ trio }: TeamTrioListProps) => {
         return (
           <TeamRow
             team={team}
-            key={trio.name + "-" + index}
+            key={trio.league + "-" + index}
             button={
               <Pressable style={{}}>
                 {({ pressed }) => (
