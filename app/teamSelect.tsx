@@ -17,7 +17,7 @@ const TeamCell = ({ team }: { team: TeamInfo }) => {
           source={team.logo}
           /*placeholder={{ blurhash }}*/
           contentFit="cover"
-          transition={1000}
+          transition={0}
         />
       </View>
       <ThemedText type="defaultSemiBold">{team.abbreviation}</ThemedText>
@@ -33,12 +33,17 @@ const sortTeams = (teams: Team[]) => {
   });
 };
 
+
+
 const TeamSelect = () => {
+  const [searchText, setSearchText] = useState("");
   const [teams, setTeams] = useState(new Array(0) as Team[]);
   const [filteredTeams, setFilteredTeams] = useState(new Array(0) as Team[]);
   const router = useRouter();
 
   const { league }: { league: League } = useLocalSearchParams();
+
+  
 
   useEffect(() => {
     console.log(league);
@@ -51,7 +56,36 @@ const TeamSelect = () => {
       });
   }, []);
 
-  useEffect(() => {}, [teams]);
+  useEffect(() => {
+    const text = searchText;
+    const words = text.trim().toLowerCase().split(" ");
+
+    if (words.length > 0) {
+      setFilteredTeams(teams);
+    } 
+
+    const filtered: { team: Team, count: number }[] = [];
+    teams.forEach((team) => {
+      const info = team.info;
+      const name = info.displayName.toLowerCase();
+      const abbr = info.abbreviation.toLowerCase();
+      let count = 0;
+      words.forEach((word) => {
+        if (name.includes(word)) {
+          count++;
+          if (name.indexOf(word)) count++;
+        }
+        if (word === abbr) count++;
+      });
+
+      if (count > 0) filtered.push({ team, count });
+
+    });
+
+    filtered.sort((a, b) => a.count - b.count);
+
+    setFilteredTeams(filtered.map(filteredTeam => filteredTeam.team));
+  }, [teams, searchText]);
 
   return (
     <ThemedView
@@ -112,6 +146,9 @@ const TeamSelect = () => {
             fontWeight: "600",
             flexGrow: 1,
           }}
+          onChangeText={(text) => {
+            setSearchText(text);
+          }}
         />
       </View>
 
@@ -122,13 +159,13 @@ const TeamSelect = () => {
       </View> */}
 
       <FlatList
-        data={teams}
+        data={filteredTeams}
         /*renderItem={({ item }) => <TeamRow team={item.info} />}*/
         renderItem={({ item }) => <TeamCell team={item.info} />}
         numColumns={4}
         key="team-list-4"
         style={{ width: "100%" }}
-        contentContainerStyle={{ alignItems: "center" }}
+        contentContainerStyle={{ alignItems: "center", paddingBottom: 10 }}
         // ItemSeparatorComponent={() => (
         //   <View style={{ flex: 1, flexDirection: "row" }} />
         // )}
