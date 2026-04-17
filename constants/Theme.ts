@@ -2,7 +2,7 @@ const Theme = {
   bg: "#212830",
   caret: "#41ce5c",
   //main: "#41ce5c",
-  main: "#377",
+  main: "#337777",
   sub: "#788386",
   subAlt: "#141b23",
   text: "#ccdae6",

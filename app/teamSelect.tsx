@@ -1,6 +1,6 @@
 import { ThemedText, ThemedView } from "@/components/themed/ThemedComponents";
 import Theme from "@/constants/Theme";
-import { getTeams, League, Team, TeamInfo } from "@/user/api";
+import { getTeams, League, Team } from "@/user/api";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Image } from "expo-image";
@@ -8,20 +8,42 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
 
-const TeamCell = ({ team }: { team: TeamInfo }) => {
+// todo: goto https://docs.expo.dev/tutorial/create-a-modal/
+
+const TeamCell = ({ team }: { team: Team }) => {
+  const router = useRouter();
+
   return (
-    <View style={styles.team_cell}>
+    <Pressable
+      style={({ pressed }) => {
+        return pressed
+          ? [
+              styles.team_cell,
+              { backgroundColor: styles.team_cell.backgroundColor + "bb" },
+            ]
+          : styles.team_cell;
+      }}
+      onPress={() => {
+        console.log("pressed " + team.info.displayName);
+        // const teamStr = JSON.stringify(team);
+        // console.log(teamStr);
+        // router.push({
+        //   pathname: "/teamAddModal",
+        //   params: { team: teamStr },
+        // });
+      }}
+    >
       <View style={{ marginBottom: 2, padding: 4 }}>
         <Image
           style={styles.team_image}
-          source={team.logo}
+          source={team.info.logo}
           /*placeholder={{ blurhash }}*/
           contentFit="cover"
           transition={0}
         />
       </View>
-      <ThemedText type="defaultSemiBold">{team.abbreviation}</ThemedText>
-    </View>
+      <ThemedText type="defaultSemiBold">{team.info.abbreviation}</ThemedText>
+    </Pressable>
   );
 };
 
@@ -33,8 +55,6 @@ const sortTeams = (teams: Team[]) => {
   });
 };
 
-
-
 const TeamSelect = () => {
   const [searchText, setSearchText] = useState("");
   const [teams, setTeams] = useState(new Array(0) as Team[]);
@@ -42,8 +62,6 @@ const TeamSelect = () => {
   const router = useRouter();
 
   const { league }: { league: League } = useLocalSearchParams();
-
-  
 
   useEffect(() => {
     console.log(league);
@@ -62,29 +80,35 @@ const TeamSelect = () => {
 
     if (words.length > 0) {
       setFilteredTeams(teams);
-    } 
+    }
 
-    const filtered: { team: Team, count: number }[] = [];
+    const filtered: { team: Team; count: number }[] = [];
     teams.forEach((team) => {
       const info = team.info;
       const name = info.displayName.toLowerCase();
       const abbr = info.abbreviation.toLowerCase();
-      let count = 0;
-      words.forEach((word) => {
-        if (name.includes(word)) {
-          count++;
-          if (name.indexOf(word)) count++;
-        }
-        if (word === abbr) count++;
-      });
+      // let count = 0;
+      // words.forEach((word) => {
+      //   if (name.includes(word)) {
+      //     count++;
+      //     if (name.indexOf(word)) count++;
+      //   }
+      //   if (word === abbr) count++;
+      // });
 
-      if (count > 0) filtered.push({ team, count });
+      // if (count > 0) filtered.push({ team, count });
 
+      if (
+        words.every((word) => name.includes(word)) ||
+        words.some((word) => abbr === word)
+      ) {
+        filtered.push({ team, count: 1 });
+      }
     });
 
     filtered.sort((a, b) => a.count - b.count);
 
-    setFilteredTeams(filtered.map(filteredTeam => filteredTeam.team));
+    setFilteredTeams(filtered.map((filteredTeam) => filteredTeam.team));
   }, [teams, searchText]);
 
   return (
@@ -161,7 +185,7 @@ const TeamSelect = () => {
       <FlatList
         data={filteredTeams}
         /*renderItem={({ item }) => <TeamRow team={item.info} />}*/
-        renderItem={({ item }) => <TeamCell team={item.info} />}
+        renderItem={({ item }) => <TeamCell team={item} />}
         numColumns={4}
         key="team-list-4"
         style={{ width: "100%" }}
