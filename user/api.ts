@@ -109,7 +109,7 @@ const getTeams = async (league: League): Promise<Team[]> => {
   if (Array.isArray(data)) {
     data.forEach((team) => {
       if (isTeamInfo(team)) {
-        const info = team as TeamInfo;
+        const info: TeamInfo = team;
         if (!teams.has(info.id)) teams.set(team.id, { info });
       }
     });
@@ -132,7 +132,7 @@ const getTeam = async (id: number): Promise<Team | null> => {
   const data = await fetchAPIData(url);
 
   if (data && isTeamInfo(data)) {
-    const teamInfo = data as TeamInfo;
+    const teamInfo: TeamInfo = data;
     team = { info: teamInfo };
     teams.set(id, team);
     return team;

@@ -1,16 +1,25 @@
 import { ThemedText, ThemedView } from "@/components/themed/ThemedComponents";
 import Theme from "@/constants/Theme";
 import { getTeams, League, Team } from "@/user/api";
+import { leagueTrios } from "@/user/teams";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { FlatList, Pressable, StyleSheet, TextInput, View } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import ThemedModal from "./modal";
 
 // todo: goto https://docs.expo.dev/tutorial/create-a-modal/
 
-const TeamCell = ({ team }: { team: Team }) => {
+const TeamCell = ({ team, onPress }: { team: Team; onPress: () => void }) => {
   const router = useRouter();
 
   return (
@@ -25,12 +34,7 @@ const TeamCell = ({ team }: { team: Team }) => {
       }}
       onPress={() => {
         console.log("pressed " + team.info.displayName);
-        // const teamStr = JSON.stringify(team);
-        // console.log(teamStr);
-        // router.push({
-        //   pathname: "/teamAddModal",
-        //   params: { team: teamStr },
-        // });
+        onPress();
       }}
     >
       <View style={{ marginBottom: 2, padding: 4 }}>
@@ -47,27 +51,33 @@ const TeamCell = ({ team }: { team: Team }) => {
   );
 };
 
-const sortTeams = (teams: Team[]) => {
-  return teams.sort((a, b) => {
-    if (a.info.abbreviation < b.info.abbreviation) return -1;
-    if (a.info.abbreviation > b.info.abbreviation) return 1;
-    return 0;
-  });
-};
-
 const TeamSelect = () => {
   const [searchText, setSearchText] = useState("");
-  const [teams, setTeams] = useState(new Array(0) as Team[]);
+  const [teams, setTeams] = useState([] as Team[]);
   const [filteredTeams, setFilteredTeams] = useState(new Array(0) as Team[]);
+  const [selectedTeam, setSelectedTeam] = useState(null as Team | null);
   const router = useRouter();
 
   const { league }: { league: League } = useLocalSearchParams();
+  const trio = leagueTrios.find((trio) => trio.league === league);
+
+  const onAddModalClose = () => {
+    setSelectedTeam(null);
+  };
+
+  const sortTeams = (teams: Team[]): Team[] => {
+    return teams.toSorted((a, b) => {
+      if (a.info.abbreviation < b.info.abbreviation) return -1;
+      if (a.info.abbreviation > b.info.abbreviation) return 1;
+      return 0;
+    });
+  };
 
   useEffect(() => {
     console.log(league);
     getTeams(league)
-      .then((teams) => {
-        setTeams(sortTeams(teams));
+      .then((teamsData) => {
+        setTeams(sortTeams(teamsData));
       })
       .catch((err) => {
         console.error(err);
@@ -185,7 +195,14 @@ const TeamSelect = () => {
       <FlatList
         data={filteredTeams}
         /*renderItem={({ item }) => <TeamRow team={item.info} />}*/
-        renderItem={({ item }) => <TeamCell team={item} />}
+        renderItem={({ item }) => (
+          <TeamCell
+            team={item}
+            onPress={() => {
+              setSelectedTeam(item);
+            }}
+          />
+        )}
         numColumns={4}
         key="team-list-4"
         style={{ width: "100%" }}
@@ -194,6 +211,83 @@ const TeamSelect = () => {
         //   <View style={{ flex: 1, flexDirection: "row" }} />
         // )}
       />
+
+      <ThemedModal
+        title="Add Team"
+        isVisible={selectedTeam !== null}
+        onClose={onAddModalClose}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "flex-start",
+            width: "100%",
+            padding: 10,
+          }}
+        >
+          <View style={{ alignItems: "center", maxWidth: "35%" }}>
+            <View
+              style={{
+                padding: 16,
+                backgroundColor: Theme.text,
+                borderRadius: "50%",
+              }}
+            >
+              <Image
+                style={{ width: 80, height: 80 }}
+                source={selectedTeam && selectedTeam.info.logo}
+                /*placeholder={{ blurhash }}*/
+                contentFit="cover"
+                transition={0}
+              />
+            </View>
+
+            <View
+              style={{
+                marginTop: 8,
+                flexDirection: "row",
+                justifyContent: "center",
+              }}
+            >
+              <ThemedText
+                type="defaultSemiBold"
+                style={{ textAlign: "center" }}
+              >
+                {selectedTeam?.info.displayName}
+              </ThemedText>
+            </View>
+          </View>
+
+          <View
+            style={[
+              styles.container,
+              { justifyContent: "flex-start", marginLeft: 10 },
+            ]}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                width: "100%",
+              }}
+            >
+              <ThemedText>Add Team?</ThemedText>
+              <View style={{ flex: 1 }}></View>
+              <Pressable style={styles.add_btn}>
+                <Text style={styles.add_btn_text}>Add</Text>
+                <Entypo name="plus" size={18} color="white" />
+              </Pressable>
+            </View>
+
+            <View>
+              {trio?.getTeams().map((team: Team) => (
+                <View>
+                  <ThemedText>{team.info.displayName}</ThemedText>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      </ThemedModal>
     </ThemedView>
   );
 };
@@ -222,5 +316,17 @@ const styles = StyleSheet.create({
     //backgroundColor: "#0553",
     //backgroundColor: Theme.main,
     //borderRadius: 25,
+  },
+  add_btn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: Theme.error,
+  },
+  add_btn_text: {
+    color: "white",
+    fontWeight: "700",
   },
 });

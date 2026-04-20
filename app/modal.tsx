@@ -1,32 +1,22 @@
 import { ThemedText, ThemedView } from "@/components/themed/ThemedComponents";
 import Theme from "@/constants/Theme";
-import { Team } from "@/user/api";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Link, router } from "expo-router";
 import React from "react";
 import { Modal, Pressable, StyleSheet, View, ViewProps } from "react-native";
 
-export type TeamAddModalProps = ViewProps & {
-  team?: string;
+export type ThemedModal = ViewProps & {
+  title: string;
   isVisible: boolean;
   onClose: () => void;
 };
 
-const TeamAddModal = ({ team, isVisible, onClose }: TeamAddModalProps) => {
-  const isPresented = router.canGoBack();
-  console.log(team);
-  const data = team
-    ? (JSON.parse(team) as Team)
-    : { info: { displayName: "" } };
-
+const ThemedModal = ({ title, isVisible, children, onClose }: ThemedModal) => {
   return (
     <View>
       <Modal animationType="slide" transparent={true} visible={isVisible}>
         <ThemedView style={styles.modalContent}>
           <View style={styles.titleContainer}>
-            <ThemedText type="defaultSemiBold">
-              Add {data.info.displayName}
-            </ThemedText>
+            <ThemedText type="defaultSemiBold">{title}</ThemedText>
             <Pressable onPress={onClose}>
               <MaterialIcons
                 name="close"
@@ -35,21 +25,14 @@ const TeamAddModal = ({ team, isVisible, onClose }: TeamAddModalProps) => {
               ></MaterialIcons>
             </Pressable>
           </View>
-          <View style={{ flexDirection: "row" }}>
-            <Pressable style={styles.btn}>Add Team</Pressable>
-            {isPresented && (
-              <Link href="../" style={[styles.btn, styles.cancel_btn]}>
-                Cancel
-              </Link>
-            )}
-          </View>
+          <View style={styles.container}>{children}</View>
         </ThemedView>
       </Modal>
     </View>
   );
 };
 
-export default TeamAddModal;
+export default ThemedModal;
 
 const styles = StyleSheet.create({
   container: {
