@@ -61,6 +61,8 @@ const TeamSelect = () => {
   const { league }: { league: League } = useLocalSearchParams();
   const trio = leagueTrios.find((trio) => trio.league === league);
 
+  const [trioTeams, setTrioTeams] = useState(trio?.getTeams() || []);
+
   const onAddModalClose = () => {
     setSelectedTeam(null);
   };
@@ -89,11 +91,20 @@ const TeamSelect = () => {
     const words = text.trim().toLowerCase().split(" ");
 
     if (words.length > 0) {
-      setFilteredTeams(teams);
+      setFilteredTeams(
+        teams.filter((team) =>
+          trioTeams
+            ? trioTeams.every((trioTeam) => trioTeam.info.id !== team.info.id)
+            : trioTeams,
+        ),
+      );
     }
 
     const filtered: { team: Team; count: number }[] = [];
     teams.forEach((team) => {
+      if (!trioTeams.every((trioTeam) => trioTeam.info.id !== team.info.id))
+        return;
+
       const info = team.info;
       const name = info.displayName.toLowerCase();
       const abbr = info.abbreviation.toLowerCase();
@@ -119,7 +130,7 @@ const TeamSelect = () => {
     filtered.sort((a, b) => a.count - b.count);
 
     setFilteredTeams(filtered.map((filteredTeam) => filteredTeam.team));
-  }, [teams, searchText]);
+  }, [teams, trioTeams, searchText]);
 
   return (
     <ThemedView
@@ -261,7 +272,11 @@ const TeamSelect = () => {
           <View
             style={[
               styles.container,
-              { justifyContent: "flex-start", marginLeft: 10 },
+              {
+                justifyContent: "flex-start",
+                marginLeft: 10,
+                alignItems: "stretch",
+              },
             ]}
           >
             <View
@@ -272,16 +287,55 @@ const TeamSelect = () => {
             >
               <ThemedText>Add Team?</ThemedText>
               <View style={{ flex: 1 }}></View>
-              <Pressable style={styles.add_btn}>
+              <Pressable
+                style={styles.add_btn}
+                onPress={() => {
+                  if (!selectedTeam) return;
+                  console.log("adding " + selectedTeam?.info.displayName);
+                  trio?.addTeam(selectedTeam);
+                  setTrioTeams(trio?.getTeams() || []);
+                }}
+              >
                 <Text style={styles.add_btn_text}>Add</Text>
                 <Entypo name="plus" size={18} color="white" />
               </Pressable>
             </View>
 
-            <View>
+            <View
+              style={{ flexGrow: 1, marginTop: 6, flexDirection: "column" }}
+            >
               {trio?.getTeams().map((team: Team) => (
-                <View>
-                  <ThemedText>{team.info.displayName}</ThemedText>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: Theme.main + "77",
+                    borderRadius: 6,
+                    padding: "2%",
+                    width: "100%",
+                    flexGrow: 1,
+                    maxHeight: "50%",
+                  }}
+                >
+                  <View
+                    style={{
+                      borderRadius: "50%",
+                      height: "100%",
+                      backgroundColor: Theme.main,
+                      padding: "1%",
+                      marginRight: 6,
+                    }}
+                  >
+                    <Image
+                      style={{ height: "100%", aspectRatio: 1 }}
+                      source={team.info.logo}
+                      transition={0}
+                      contentFit="cover"
+                    />
+                  </View>
+                  <ThemedText type="defaultSemiBold">
+                    {team.info.displayName}
+                  </ThemedText>
                 </View>
               ))}
             </View>

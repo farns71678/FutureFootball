@@ -1,5 +1,4 @@
-import { League } from "./api";
-import { Team } from "./team";
+import { League, Team } from "./api";
 
 const maxTeams = 3;
 
@@ -12,13 +11,16 @@ export class TeamTrio {
   }
 
   addTeam(team: Team) {
-    if (this.teams.length < maxTeams) {
+    if (
+      this.teams.length < maxTeams &&
+      !this.teams.find((t) => t.info.id !== team.info.id)
+    ) {
       this.teams.push(team);
     }
   }
 
   removeTeam(id: number) {
-    this.teams = this.teams.filter((t) => t.id != id);
+    this.teams = this.teams.filter((t) => t.info.id !== id);
   }
 
   size() {

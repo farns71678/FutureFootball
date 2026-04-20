@@ -3,7 +3,7 @@ import { TeamTrio } from "@/user/teamTrio";
 import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 import TeamRow from "./TeamRow";
 import ThemedText from "./themed/ThemedText";
@@ -14,6 +14,8 @@ type TeamTrioListProps = {
 
 const TeamTrioList = ({ trio }: TeamTrioListProps) => {
   const router = useRouter();
+
+  const [teams, setTeams] = useState(trio.getTeams());
 
   return (
     <View>
@@ -34,25 +36,34 @@ const TeamTrioList = ({ trio }: TeamTrioListProps) => {
           <Entypo name="chevron-right" size={22} color={Theme.sub} />
         </Pressable>
       </View>
-      {trio.getTeams().map((team, index) => {
-        return (
-          <TeamRow
-            team={team}
-            key={trio.league + "-" + index}
-            button={
-              <Pressable style={{}}>
-                {({ pressed }) => (
-                  <Ionicons
-                    name={pressed ? "remove-circle" : "remove-circle-outline"}
-                    size={24}
-                    color={Theme.error}
-                  />
-                )}
-              </Pressable>
-            }
-          />
-        );
-      })}
+      {teams.length > 0 ? (
+        teams.map((team, index) => {
+          return (
+            <TeamRow
+              team={team.info}
+              key={trio.league + "-" + index}
+              button={
+                <Pressable
+                  onPress={() => {
+                    trio.removeTeam(team.info.id);
+                    setTeams(trio.getTeams());
+                  }}
+                >
+                  {({ pressed }) => (
+                    <Ionicons
+                      name={pressed ? "remove-circle" : "remove-circle-outline"}
+                      size={24}
+                      color={Theme.error}
+                    />
+                  )}
+                </Pressable>
+              }
+            />
+          );
+        })
+      ) : (
+        <ThemedText>You have no teams</ThemedText>
+      )}
     </View>
   );
 };
