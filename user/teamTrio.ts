@@ -13,7 +13,7 @@ export class TeamTrio {
   addTeam(team: Team) {
     if (
       this.teams.length < maxTeams &&
-      !this.teams.find((t) => t.info.id !== team.info.id)
+      !this.teams.find((t) => t.info.id === team.info.id)
     ) {
       this.teams.push(team);
     }

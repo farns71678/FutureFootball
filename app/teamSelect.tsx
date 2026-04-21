@@ -1,21 +1,15 @@
-import { ThemedText, ThemedView } from "@/components/themed/ThemedComponents";
-import Theme from "@/constants/Theme";
-import { getTeams, League, Team } from "@/user/api";
-import { leagueTrios } from "@/user/teams";
-import Entypo from "@expo/vector-icons/Entypo";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Image } from "expo-image";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import ThemedModal from "./modal";
+import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
+import Theme from '@/constants/Theme';
+import { getTeams, League, Team } from '@/user/api';
+import { leagueTrios } from '@/user/teams';
+import Entypo from '@expo/vector-icons/Entypo';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import ThemedModal from './modal';
 
 // todo: goto https://docs.expo.dev/tutorial/create-a-modal/
 
@@ -26,14 +20,11 @@ const TeamCell = ({ team, onPress }: { team: Team; onPress: () => void }) => {
     <Pressable
       style={({ pressed }) => {
         return pressed
-          ? [
-              styles.team_cell,
-              { backgroundColor: styles.team_cell.backgroundColor + "bb" },
-            ]
+          ? [styles.team_cell, { backgroundColor: styles.team_cell.backgroundColor + 'bb' }]
           : styles.team_cell;
       }}
       onPress={() => {
-        console.log("pressed " + team.info.displayName);
+        console.log('pressed ' + team.info.displayName);
         onPress();
       }}
     >
@@ -52,7 +43,7 @@ const TeamCell = ({ team, onPress }: { team: Team; onPress: () => void }) => {
 };
 
 const TeamSelect = () => {
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState('');
   const [teams, setTeams] = useState([] as Team[]);
   const [filteredTeams, setFilteredTeams] = useState(new Array(0) as Team[]);
   const [selectedTeam, setSelectedTeam] = useState(null as Team | null);
@@ -88,22 +79,17 @@ const TeamSelect = () => {
 
   useEffect(() => {
     const text = searchText;
-    const words = text.trim().toLowerCase().split(" ");
+    const words = text.trim().toLowerCase().split(' ');
 
     if (words.length > 0) {
       setFilteredTeams(
-        teams.filter((team) =>
-          trioTeams
-            ? trioTeams.every((trioTeam) => trioTeam.info.id !== team.info.id)
-            : trioTeams,
-        ),
+        teams.filter((team) => (trioTeams ? trioTeams.every((trioTeam) => trioTeam.info.id !== team.info.id) : true))
       );
     }
 
     const filtered: { team: Team; count: number }[] = [];
     teams.forEach((team) => {
-      if (!trioTeams.every((trioTeam) => trioTeam.info.id !== team.info.id))
-        return;
+      if (!trioTeams.every((trioTeam) => trioTeam.info.id !== team.info.id)) return;
 
       const info = team.info;
       const name = info.displayName.toLowerCase();
@@ -119,10 +105,7 @@ const TeamSelect = () => {
 
       // if (count > 0) filtered.push({ team, count });
 
-      if (
-        words.every((word) => name.includes(word)) ||
-        words.some((word) => abbr === word)
-      ) {
+      if (words.every((word) => name.includes(word)) || words.some((word) => abbr === word)) {
         filtered.push({ team, count: 1 });
       }
     });
@@ -133,25 +116,22 @@ const TeamSelect = () => {
   }, [teams, trioTeams, searchText]);
 
   return (
-    <ThemedView
-      style={[styles.container, { justifyContent: "flex-start" }]}
-      safe={true}
-    >
+    <ThemedView style={[styles.container, { justifyContent: 'flex-start' }]} safe={true}>
       {/* todo: navigate back */}
       <View
         style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "center",
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
           marginBottom: 8,
           marginTop: 8,
-          width: "100%",
+          width: '100%',
           paddingHorizontal: 12,
         }}
       >
         <Pressable
           style={({ pressed }) => [
-            { borderRadius: "50%", marginRight: "auto", marginTop: 3 },
+            { borderRadius: '50%', marginRight: 'auto', marginTop: 3 },
             pressed && { backgroundColor: Theme.subAlt },
           ]}
           onPress={() => {
@@ -160,35 +140,30 @@ const TeamSelect = () => {
         >
           <Entypo name="chevron-left" size={26} color={Theme.text} />
         </Pressable>
-        <ThemedText type="title" style={{ marginRight: "auto" }}>
+        <ThemedText type="title" style={{ marginRight: 'auto' }}>
           Future Football
         </ThemedText>
       </View>
 
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: 'row',
           backgroundColor: Theme.sub,
           paddingVertical: 8,
           borderRadius: 8,
-          width: "90%",
+          width: '90%',
           marginTop: 6,
           paddingHorizontal: 12,
           marginBottom: 4,
         }}
       >
-        <FontAwesome
-          name="search"
-          size={18}
-          color={Theme.subAlt}
-          style={{ marginRight: 6 }}
-        />
+        <FontAwesome name="search" size={18} color={Theme.subAlt} style={{ marginRight: 6 }} />
         <TextInput
           placeholder="Search"
           style={{
             color: Theme.subAlt,
-            outline: "none",
-            fontWeight: "600",
+            outline: 'none',
+            fontWeight: '600',
             flexGrow: 1,
           }}
           onChangeText={(text) => {
@@ -216,32 +191,35 @@ const TeamSelect = () => {
         )}
         numColumns={4}
         key="team-list-4"
-        style={{ width: "100%" }}
-        contentContainerStyle={{ alignItems: "center", paddingBottom: 10 }}
+        style={{ width: '100%' }}
+        contentContainerStyle={{ alignItems: 'center', paddingBottom: 10 }}
         // ItemSeparatorComponent={() => (
         //   <View style={{ flex: 1, flexDirection: "row" }} />
         // )}
       />
 
-      <ThemedModal
-        title="Add Team"
-        isVisible={selectedTeam !== null}
-        onClose={onAddModalClose}
-      >
+      <ThemedModal title="Add Team" isVisible={selectedTeam !== null} onClose={onAddModalClose}>
         <View
           style={{
-            flexDirection: "row",
-            justifyContent: "flex-start",
-            width: "100%",
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            width: '100%',
             padding: 10,
+            flex: 1,
           }}
         >
-          <View style={{ alignItems: "center", maxWidth: "35%" }}>
+          <View
+            style={{
+              alignItems: 'center',
+              maxWidth: '35%',
+              justifyContent: 'center',
+            }}
+          >
             <View
               style={{
                 padding: 16,
                 backgroundColor: Theme.text,
-                borderRadius: "50%",
+                borderRadius: '50%',
               }}
             >
               <Image
@@ -256,14 +234,11 @@ const TeamSelect = () => {
             <View
               style={{
                 marginTop: 8,
-                flexDirection: "row",
-                justifyContent: "center",
+                flexDirection: 'row',
+                justifyContent: 'center',
               }}
             >
-              <ThemedText
-                type="defaultSemiBold"
-                style={{ textAlign: "center" }}
-              >
+              <ThemedText type="defaultSemiBold" style={{ textAlign: 'center' }}>
                 {selectedTeam?.info.displayName}
               </ThemedText>
             </View>
@@ -273,69 +248,95 @@ const TeamSelect = () => {
             style={[
               styles.container,
               {
-                justifyContent: "flex-start",
+                justifyContent: 'flex-start',
                 marginLeft: 10,
-                alignItems: "stretch",
+                alignItems: 'stretch',
               },
             ]}
           >
             <View
               style={{
-                flexDirection: "row",
-                width: "100%",
+                flexDirection: 'row',
+                width: '100%',
               }}
             >
               <ThemedText>Add Team?</ThemedText>
               <View style={{ flex: 1 }}></View>
               <Pressable
-                style={styles.add_btn}
+                style={[styles.add_btn, trioTeams.length === 3 ? { backgroundColor: '#111' } : undefined]}
                 onPress={() => {
-                  if (!selectedTeam) return;
-                  console.log("adding " + selectedTeam?.info.displayName);
+                  if (!selectedTeam || trioTeams.length === 3) return;
+                  console.log('adding ' + selectedTeam?.info.displayName);
                   trio?.addTeam(selectedTeam);
-                  setTrioTeams(trio?.getTeams() || []);
+                  console.log(trio);
+                  setTrioTeams([...(trio?.getTeams() || [])]);
+                  onAddModalClose();
                 }}
               >
-                <Text style={styles.add_btn_text}>Add</Text>
-                <Entypo name="plus" size={18} color="white" />
+                <Text style={[styles.add_btn_text, trioTeams.length === 3 && { color: '#666' }]}>Add</Text>
+                <Entypo name="plus" size={18} color={trioTeams.length < 3 ? 'white' : '#666'} />
               </Pressable>
             </View>
 
             <View
-              style={{ flexGrow: 1, marginTop: 6, flexDirection: "column" }}
+              style={{
+                flexGrow: 1,
+                marginTop: 6,
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+                alignItems: 'stretch',
+              }}
             >
-              {trio?.getTeams().map((team: Team) => (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    backgroundColor: Theme.main + "77",
-                    borderRadius: 6,
-                    padding: "2%",
-                    width: "100%",
-                    flexGrow: 1,
-                    maxHeight: "50%",
-                  }}
-                >
+              {trioTeams.map((team: Team) => (
+                <View style={{ paddingBottom: 3, flexShrink: 1 }}>
                   <View
                     style={{
-                      borderRadius: "50%",
-                      height: "100%",
-                      backgroundColor: Theme.main,
-                      padding: "1%",
-                      marginRight: 6,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: Theme.main + '77',
+                      borderRadius: 6,
+                      padding: 4,
+                      width: '100%',
                     }}
                   >
-                    <Image
-                      style={{ height: "100%", aspectRatio: 1 }}
-                      source={team.info.logo}
-                      transition={0}
-                      contentFit="cover"
-                    />
+                    <View
+                      style={{
+                        borderRadius: '50%',
+                        // height: "100%",
+                        backgroundColor: Theme.main,
+                        padding: 6,
+                        marginRight: 6,
+                      }}
+                    >
+                      <Image
+                        style={{ height: 30, aspectRatio: 1 }}
+                        source={team.info.logo}
+                        transition={0}
+                        contentFit="cover"
+                      />
+                    </View>
+                    <View style={{ flexGrow: 1, flexShrink: 1 }}>
+                      <ThemedText type="defaultSemiBold" style={{ fontSize: 14, lineHeight: 18 }}>
+                        {team.info.displayName}
+                      </ThemedText>
+                    </View>
+
+                    <Pressable
+                      onPress={() => {
+                        trio?.removeTeam(team.info.id);
+                        setTrioTeams([...(trio?.getTeams() || [])]);
+                      }}
+                      style={{ marginRight: 4 }}
+                    >
+                      {({ pressed }) => (
+                        <Ionicons
+                          name={pressed ? 'remove-circle' : 'remove-circle-outline'}
+                          size={20}
+                          color={Theme.error}
+                        />
+                      )}
+                    </Pressable>
                   </View>
-                  <ThemedText type="defaultSemiBold">
-                    {team.info.displayName}
-                  </ThemedText>
                 </View>
               ))}
             </View>
@@ -351,16 +352,16 @@ export default TeamSelect;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   team_cell: {
     paddingVertical: 6,
     paddingHorizontal: 10,
     backgroundColor: Theme.main,
     borderRadius: 10,
-    flexDirection: "column",
-    alignItems: "center",
+    flexDirection: 'column',
+    alignItems: 'center',
     marginVertical: 4,
     marginHorizontal: 4,
   },
@@ -372,15 +373,15 @@ const styles = StyleSheet.create({
     //borderRadius: 25,
   },
   add_btn: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 6,
     paddingVertical: 4,
     borderRadius: 6,
     backgroundColor: Theme.error,
   },
   add_btn_text: {
-    color: "white",
-    fontWeight: "700",
+    color: 'white',
+    fontWeight: '700',
   },
 });

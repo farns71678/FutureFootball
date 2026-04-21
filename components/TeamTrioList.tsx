@@ -2,8 +2,8 @@ import Theme from "@/constants/Theme";
 import { TeamTrio } from "@/user/teamTrio";
 import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 import TeamRow from "./TeamRow";
 import ThemedText from "./themed/ThemedText";
@@ -15,7 +15,13 @@ type TeamTrioListProps = {
 const TeamTrioList = ({ trio }: TeamTrioListProps) => {
   const router = useRouter();
 
-  const [teams, setTeams] = useState(trio.getTeams());
+  const [teams, setTeams] = useState([...trio.getTeams()]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setTeams([...trio.getTeams()]);
+    }, []),
+  );
 
   return (
     <View>

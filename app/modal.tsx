@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalContent: {
-    height: "25%",
+    height: "30%",
     width: "100%",
     borderTopRightRadius: 18,
     borderTopLeftRadius: 18,
