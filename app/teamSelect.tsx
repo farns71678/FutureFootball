@@ -2,13 +2,14 @@ import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
 import { getTeams, League, Team } from '@/user/api';
 import { leagueTrios } from '@/user/teams';
+import { TeamTrio } from '@/user/teamTrio';
 import Entypo from '@expo/vector-icons/Entypo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import ThemedModal from './modal';
 
 // todo: goto https://docs.expo.dev/tutorial/create-a-modal/
@@ -178,25 +179,33 @@ const TeamSelect = () => {
         ))}
       </View> */}
 
-      <FlatList
-        data={filteredTeams}
-        /*renderItem={({ item }) => <TeamRow team={item.info} />}*/
-        renderItem={({ item }) => (
-          <TeamCell
-            team={item}
-            onPress={() => {
-              setSelectedTeam(item);
-            }}
-          />
-        )}
-        numColumns={4}
-        key="team-list-4"
-        style={{ width: '100%' }}
-        contentContainerStyle={{ alignItems: 'center', paddingBottom: 10 }}
-        // ItemSeparatorComponent={() => (
-        //   <View style={{ flex: 1, flexDirection: "row" }} />
-        // )}
-      />
+      {teams.length > 0 ? (
+        <FlatList
+          data={filteredTeams}
+          /*renderItem={({ item }) => <TeamRow team={item.info} />}*/
+          renderItem={({ item }) => (
+            <TeamCell
+              team={item}
+              onPress={() => {
+                setSelectedTeam(item);
+              }}
+            />
+          )}
+          numColumns={4}
+          key="team-list-4"
+          style={{ width: '100%' }}
+          contentContainerStyle={{ alignItems: 'center', paddingBottom: 10 }}
+          // ItemSeparatorComponent={() => (
+          //   <View style={{ flex: 1, flexDirection: "row" }} />
+          // )}
+        />
+      ) : (
+        <View style={styles.container}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <ThemedText>Loading </ThemedText> <ActivityIndicator color={Theme.text} />
+          </View>
+        </View>
+      )}
 
       <ThemedModal title="Add Team" isVisible={selectedTeam !== null} onClose={onAddModalClose}>
         <View
@@ -263,9 +272,12 @@ const TeamSelect = () => {
               <ThemedText>Add Team?</ThemedText>
               <View style={{ flex: 1 }}></View>
               <Pressable
-                style={[styles.add_btn, trioTeams.length === 3 ? { backgroundColor: '#111' } : undefined]}
+                style={[
+                  styles.add_btn,
+                  trioTeams.length === TeamTrio.maxTeams ? { backgroundColor: '#111' } : undefined,
+                ]}
                 onPress={() => {
-                  if (!selectedTeam || trioTeams.length === 3) return;
+                  if (!selectedTeam || trioTeams.length === TeamTrio.maxTeams) return;
                   console.log('adding ' + selectedTeam?.info.displayName);
                   trio?.addTeam(selectedTeam);
                   console.log(trio);
@@ -273,8 +285,10 @@ const TeamSelect = () => {
                   onAddModalClose();
                 }}
               >
-                <Text style={[styles.add_btn_text, trioTeams.length === 3 && { color: '#666' }]}>Add</Text>
-                <Entypo name="plus" size={18} color={trioTeams.length < 3 ? 'white' : '#666'} />
+                <Text style={[styles.add_btn_text, trioTeams.length === TeamTrio.maxTeams && { color: '#666' }]}>
+                  Add
+                </Text>
+                <Entypo name="plus" size={18} color={trioTeams.length < TeamTrio.maxTeams ? 'white' : '#666'} />
               </Pressable>
             </View>
 

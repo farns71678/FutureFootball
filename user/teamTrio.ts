@@ -1,20 +1,16 @@
-import { League, Team } from "./api";
-
-const maxTeams = 3;
+import { League, Team } from './api';
 
 export class TeamTrio {
   league: League;
   teams: Team[] = [];
+  static readonly maxTeams = 3;
 
   constructor(league: League) {
     this.league = league;
   }
 
   addTeam(team: Team) {
-    if (
-      this.teams.length < maxTeams &&
-      !this.teams.find((t) => t.info.id === team.info.id)
-    ) {
+    if (this.teams.length < TeamTrio.maxTeams && !this.teams.find((t) => t.info.id === team.info.id)) {
       this.teams.push(team);
     }
   }

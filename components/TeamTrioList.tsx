@@ -1,18 +1,19 @@
-import Theme from "@/constants/Theme";
-import { TeamTrio } from "@/user/teamTrio";
-import Entypo from "@expo/vector-icons/Entypo";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
-import { Pressable, View } from "react-native";
-import TeamRow from "./TeamRow";
-import ThemedText from "./themed/ThemedText";
+import Theme from '@/constants/Theme';
+import { TeamTrio } from '@/user/teamTrio';
+import Entypo from '@expo/vector-icons/Entypo';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Pressable, View } from 'react-native';
+import TeamRow from './TeamRow';
+import ThemedText from './themed/ThemedText';
 
 type TeamTrioListProps = {
   trio: TeamTrio;
+  onChange: () => void;
 };
 
-const TeamTrioList = ({ trio }: TeamTrioListProps) => {
+const TeamTrioList = ({ trio, onChange }: TeamTrioListProps) => {
   const router = useRouter();
 
   const [teams, setTeams] = useState([...trio.getTeams()]);
@@ -20,21 +21,25 @@ const TeamTrioList = ({ trio }: TeamTrioListProps) => {
   useFocusEffect(
     useCallback(() => {
       setTeams([...trio.getTeams()]);
-    }, []),
+    }, [])
   );
+
+  useEffect(() => {
+    onChange();
+  }, [teams]);
 
   return (
     <View>
-      <View style={{ flexDirection: "row", alignItems: "center", padding: 4 }}>
-        <ThemedText type={"subtitle"}>{trio.league} Teams</ThemedText>
+      <View style={{ flexDirection: 'row', alignItems: 'center', padding: 4, marginBottom: 4 }}>
+        <ThemedText type={'subtitle'}>{trio.league} Teams</ThemedText>
         <Pressable
           style={({ pressed }) => [
-            { marginTop: 6, marginLeft: 6, borderRadius: "50%" },
+            { marginTop: 6, marginLeft: 6, borderRadius: '50%' },
             pressed && { backgroundColor: Theme.subAlt },
           ]}
           onPress={() =>
             router.push({
-              pathname: "/teamSelect",
+              pathname: '/teamSelect',
               params: { league: trio.league },
             })
           }
@@ -47,7 +52,7 @@ const TeamTrioList = ({ trio }: TeamTrioListProps) => {
           return (
             <TeamRow
               team={team.info}
-              key={trio.league + "-" + index}
+              key={trio.league + '-' + index}
               button={
                 <Pressable
                   onPress={() => {
@@ -57,7 +62,7 @@ const TeamTrioList = ({ trio }: TeamTrioListProps) => {
                 >
                   {({ pressed }) => (
                     <Ionicons
-                      name={pressed ? "remove-circle" : "remove-circle-outline"}
+                      name={pressed ? 'remove-circle' : 'remove-circle-outline'}
                       size={24}
                       color={Theme.error}
                     />
@@ -68,7 +73,9 @@ const TeamTrioList = ({ trio }: TeamTrioListProps) => {
           );
         })
       ) : (
-        <ThemedText>You have no teams</ThemedText>
+        <View style={{ paddingHorizontal: 8 }}>
+          <ThemedText>You have no {trio.league} teams. Click the arrow to add teams.</ThemedText>
+        </View>
       )}
     </View>
   );
