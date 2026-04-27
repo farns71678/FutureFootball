@@ -1,7 +1,7 @@
-export type League = "NFL" | "NCAA";
+export type League = 'NFL' | 'NCAA';
 
 const isLeague = (data: any): data is League => {
-  return data === "NFL" || data === "NCAA";
+  return data === 'NFL' || data === 'NCAA';
 };
 
 export type Stat = {
@@ -19,12 +19,12 @@ export type Stat = {
 const isStat = (data: any): data is Stat => {
   return (
     data.games &&
-    typeof data.games.played === "number" &&
-    typeof data.games.wins === "number" &&
-    typeof data.games.loses === "number" &&
+    typeof data.games.played === 'number' &&
+    typeof data.games.wins === 'number' &&
+    typeof data.games.loses === 'number' &&
     data.points &&
-    typeof data.points.scored === "number" &&
-    typeof data.points.received === "number"
+    typeof data.points.scored === 'number' &&
+    typeof data.points.received === 'number'
   );
 };
 
@@ -42,7 +42,7 @@ const isTeamStat = (data: any): data is TeamStat => {
     isStat(data.home) &&
     isStat(data.away) &&
     isLeague(data.league) &&
-    typeof data.round === "string"
+    typeof data.round === 'string'
   );
 };
 
@@ -57,11 +57,11 @@ export type TeamInfo = {
 
 const isTeamInfo = (data: any): data is TeamInfo => {
   return (
-    typeof data.id === "number" &&
-    typeof data.logo === "string" &&
-    typeof data.logo === "string" &&
-    typeof data.name === "string" &&
-    typeof data.displayName === "string" &&
+    typeof data.id === 'number' &&
+    typeof data.logo === 'string' &&
+    typeof data.logo === 'string' &&
+    typeof data.name === 'string' &&
+    typeof data.displayName === 'string' &&
     isLeague(data.league)
   );
 };
@@ -87,11 +87,11 @@ const teamArray = (league?: League): Team[] => {
 const fetchAPIData = async (url: string) => {
   //if (fetchMap.has(url)) reu
   const apiHeaders = {
-    "x-rapidapi-host": process.env.EXPO_PUBLIC_API_HOST ?? "",
-    "x-rapidapi-key": process.env.EXPO_PUBLIC_API_KEY ?? "",
+    'x-rapidapi-host': process.env.EXPO_PUBLIC_API_HOST ?? '',
+    'x-rapidapi-key': process.env.EXPO_PUBLIC_API_KEY ?? '',
   };
 
-  const res = await fetch(url, { method: "GET", headers: apiHeaders });
+  const res = await fetch(url, { method: 'GET', headers: apiHeaders });
 
   if (!res.ok) return null;
   return await res.json();
@@ -103,7 +103,7 @@ const fetchAPIData = async (url: string) => {
 const getTeams = async (league: League): Promise<Team[]> => {
   if (teams.size > 0) return teamArray(league);
 
-  const url = process.env.EXPO_PUBLIC_API_URL + "teams";
+  const url = process.env.EXPO_PUBLIC_API_URL + 'teams';
   const data = await fetchAPIData(url);
 
   if (Array.isArray(data)) {
@@ -128,7 +128,7 @@ const getTeam = async (id: number): Promise<Team | null> => {
   let team = teams.get(id);
   if (teams.get(id)) return team ?? null;
 
-  const url = process.env.EXPO_PUBLIC_API_URL + "teams/" + id;
+  const url = process.env.EXPO_PUBLIC_API_URL + 'teams/' + id;
   const data = await fetchAPIData(url);
 
   if (data && isTeamInfo(data)) {
@@ -147,5 +147,5 @@ const getTeam = async (id: number): Promise<Team | null> => {
  */
 const getTeamStats = async (id: number) => {};
 
-export { getTeam, getTeams };
+export { getTeam, getTeams, isLeague };
 
