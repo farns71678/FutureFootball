@@ -3,10 +3,14 @@ import { Platform } from 'react-native';
 import { getTeam, isLeague, League } from './api';
 import { TeamTrio } from './teamTrio';
 
+const storagePath = './trios.json';
+
 const nflTrio: TeamTrio = new TeamTrio('NFL');
 const ncaaTrio: TeamTrio = new TeamTrio('NCAA');
 
 const leagueTrios = [nflTrio, ncaaTrio] as const;
+
+let finalized = false;
 
 const parseTrio = async (data: any, league: League) => {
   if (!Array.isArray(data)) return;
@@ -23,14 +27,33 @@ const parseTrio = async (data: any, league: League) => {
   );
 };
 
+/*
+file structure:
+{
+  trios: [
+    { 
+      league: League,
+      teams: number[] (team ids)
+    }
+  ]
+  finalized: boolean
+}
+*/
+
 const parseStorageData = async (file: string) => {
   try {
     const data = JSON.parse(file);
+    if (!Array.isArray(data.trios)) return;
+
     await Promise.all(
-      Object.keys(data).map((key) => {
-        if (isLeague(key)) parseTrio(data.key, key);
+      data.trios.map((trio: any) => {
+        if (isLeague(trio.league) && Array.isArray(trio.teams)) parseTrio(trio.teams, trio.league);
       })
     );
+
+    if (data.finalized && leagueTrios.every((trio) => trio.size() === TeamTrio.maxTeams)) {
+      finalized = true;
+    }
   } catch (err) {
     console.error(`Unable to parse storage data: ${err}`);
   }
@@ -40,7 +63,7 @@ const loadStorageData = async (): Promise<boolean> => {
   try {
     if (Platform.OS !== 'web') {
       // on mobile device
-      const triosFile = new File('./trios.json');
+      const triosFile = new File(storagePath);
       if (triosFile.exists) {
         parseStorageData(triosFile.textSync());
         return true;
@@ -53,6 +76,7 @@ const loadStorageData = async (): Promise<boolean> => {
 
       if (res.ok) {
         parseStorageData(await res.text());
+        console.log('loaded data');
         return true;
       } else {
         console.error('Couldnt load storage file');
@@ -68,6 +92,35 @@ const loadStorageData = async (): Promise<boolean> => {
 
 const loadedState = loadStorageData();
 
+const formatStorageData = () => {
+  const data: any = {};
+  leagueTrios.forEach((trio) => {
+    data[trio.league] = trio.getTeams().map((team) => team.info.id);
+  });
+  return data;
+};
+
+const saveStorageData = () => {
+  try {
+    if (Platform.OS !== 'web') {
+      const file = new File(storagePath);
+      if (!file.exists) file.create();
+      file.write(JSON.stringify(formatStorageData()));
+    } else {
+      // well, this doesn't work
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const saveData = saveStorageData;
+
+const isFinalized = async () => {
+  await loadedState;
+  return finalized;
+};
+
 //nflTrio.addTeam({ info: {id: 0, name: "Seahawks", displayName: "Seattle Seahawks", abbreviation: "SHK", logo: "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png", league: "NFL"} });
 
 const getTrios = async () => {
@@ -75,5 +128,5 @@ const getTrios = async () => {
   return leagueTrios;
 };
 
-export { getTrios };
+export { getTrios, isFinalized, leagueTrios, saveData };
 
