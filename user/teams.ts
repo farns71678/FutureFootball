@@ -1,6 +1,7 @@
 import { File } from 'expo-file-system';
 import { Platform } from 'react-native';
 import { getTeam, isLeague, League } from './api';
+import { storageTestData } from './storage-test';
 import { TeamTrio } from './teamTrio';
 
 const storagePath = './trios.json';
@@ -12,15 +13,14 @@ const leagueTrios = [nflTrio, ncaaTrio] as const;
 
 let finalized = false;
 
-const parseTrio = async (data: any, league: League) => {
-  if (!Array.isArray(data)) return;
-
+const parseTrio = async (data: number[], league: League) => {
   await Promise.all(
     leagueTrios.map(async (trio) => {
       if (trio.league === league) {
-        const teams = await Promise.all(data.map((teamId) => (isNaN(teamId) ? null : getTeam(teamId))));
+        const teams = await Promise.all(data.map((teamId) => getTeam(teamId)));
         teams.forEach((team) => {
           if (team) trio.addTeam(team);
+          // console.log('adding team ' + team?.info.displayName);
         });
       }
     })
@@ -47,7 +47,11 @@ const parseStorageData = async (file: string) => {
 
     await Promise.all(
       data.trios.map((trio: any) => {
-        if (isLeague(trio.league) && Array.isArray(trio.teams)) parseTrio(trio.teams, trio.league);
+        if (isLeague(trio.league) && Array.isArray(trio.teams))
+          parseTrio(
+            trio.teams.filter((teamId: any) => !isNaN(teamId)),
+            trio.league
+          );
       })
     );
 
@@ -66,22 +70,18 @@ const loadStorageData = async (): Promise<boolean> => {
       const triosFile = new File(storagePath);
       if (triosFile.exists) {
         parseStorageData(triosFile.textSync());
+        console.log(leagueTrios);
         return true;
       } else {
         console.log('No teams saved');
       }
     } else {
       // test with dummy file
-      const res = await fetch('./assets/storage-test.json');
-
-      if (res.ok) {
-        parseStorageData(await res.text());
-        console.log('loaded data');
-        return true;
-      } else {
-        console.error('Couldnt load storage file');
-        return false;
-      }
+      //const data = await Asset.loadAsync(require('@/assets/storage-test.json'));
+      parseStorageData(storageTestData);
+      console.log(leagueTrios);
+      console.log('loaded data');
+      return true;
     }
   } catch (err) {
     console.error(err);
@@ -92,8 +92,8 @@ const loadStorageData = async (): Promise<boolean> => {
 
 const loadedState = loadStorageData();
 
-const formatStorageData = () => {
-  const data: any = {};
+const formatStorageData = (finalized: boolean) => {
+  const data: any = { finalized };
   leagueTrios.forEach((trio) => {
     data[trio.league] = trio.getTeams().map((team) => team.info.id);
   });
@@ -105,7 +105,7 @@ const saveStorageData = () => {
     if (Platform.OS !== 'web') {
       const file = new File(storagePath);
       if (!file.exists) file.create();
-      file.write(JSON.stringify(formatStorageData()));
+      file.write(JSON.stringify(formatStorageData(finalized)));
     } else {
       // well, this doesn't work
     }
@@ -121,6 +121,10 @@ const isFinalized = async () => {
   return finalized;
 };
 
+const isLoaded = async () => {
+  return await loadedState;
+};
+
 //nflTrio.addTeam({ info: {id: 0, name: "Seahawks", displayName: "Seattle Seahawks", abbreviation: "SHK", logo: "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png", league: "NFL"} });
 
 const getTrios = async () => {
@@ -128,5 +132,5 @@ const getTrios = async () => {
   return leagueTrios;
 };
 
-export { getTrios, isFinalized, leagueTrios, saveData };
+export { getTrios, isFinalized, isLoaded, leagueTrios, saveData };
 

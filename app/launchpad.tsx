@@ -1,16 +1,14 @@
 import TeamTrioList from '@/components/TeamTrioList';
 import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
-import { getTrios } from '@/user/teams';
+import { leagueTrios, saveData } from '@/user/teams';
 import { TeamTrio } from '@/user/teamTrio';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 export default function Index() {
-  const [leagueTrios, setLeagueTrios] = useState(null as TeamTrio[] | null);
-
   const checkFilledTeams = () => {
     return leagueTrios && leagueTrios.every((trio) => trio.size() === TeamTrio.maxTeams);
   };
@@ -22,10 +20,6 @@ export default function Index() {
       setFilledTeams(checkFilledTeams());
     }, [])
   );
-
-  useEffect(() => {
-    getTrios().then((trios) => setLeagueTrios([...trios]));
-  }, []);
 
   const onTeamTrioChanged = () => {
     setFilledTeams(checkFilledTeams());
@@ -58,19 +52,12 @@ export default function Index() {
         </View>
 
         {/* <ThemedText style={{color: "#ffffff"}}>Edit app/index.tsx to edit this screen.</ThemedText> */}
-        {leagueTrios ? (
-          leagueTrios.map((trio, index) => (
-            <View key={'trio-container-' + index}>
-              <TeamTrioList trio={trio} onChange={onTeamTrioChanged} />
-              <View style={{ paddingTop: 16 }} />
-            </View>
-          ))
-        ) : (
-          <View>
-            <ThemedText>Loading</ThemedText>
-            <ActivityIndicator style={{ marginLeft: 6 }} />
+        {leagueTrios.map((trio, index) => (
+          <View key={'trio-container-' + index}>
+            <TeamTrioList trio={trio} onChange={onTeamTrioChanged} />
+            <View style={{ paddingTop: 16 }} />
           </View>
-        )}
+        ))}
 
         <View style={{ flexGrow: 1 }} />
 
@@ -84,6 +71,8 @@ export default function Index() {
               }
               onPress={() => {
                 console.log('confirming teams');
+                saveData();
+                router.navigate('/home');
               }}
             >
               <ThemedText type="defaultSemiBold" style={{ fontSize: 20 }}>
