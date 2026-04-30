@@ -15,16 +15,17 @@ let finalized = false;
 
 const parseTrio = async (data: number[], league: League) => {
   await Promise.all(
-    leagueTrios.map(async (trio) => {
+    leagueTrios.map((trio) => {
       if (trio.league === league) {
-        const teams = await Promise.all(data.map((teamId) => getTeam(teamId)));
-        teams.forEach((team) => {
-          if (team) trio.addTeam(team);
-          // console.log('adding team ' + team?.info.displayName);
-        });
+        return Promise.all(data.map((teamId) => getTeam(teamId).then(team => {
+          console.log('resolved 1');
+          if (team) {
+            trio.addTeam(team);
+          }
+        }).catch(err => console.error('unable to get team: ' + err)))).then(() => console.log('resolved 2'));
       }
     })
-  );
+  ).then(() => console.log('resolved 3'));
 };
 
 /*
@@ -35,7 +36,7 @@ file structure:
       league: League,
       teams: number[] (team ids)
     }
-  ]
+  ],
   finalized: boolean
 }
 */
@@ -43,21 +44,29 @@ file structure:
 const parseStorageData = async (file: string) => {
   try {
     const data = JSON.parse(file);
-    if (!Array.isArray(data.trios)) return;
+    if (!Array.isArray(data.trios)) {
+      console.error("data.trios is not an array");
+      return;
+    }
 
     await Promise.all(
       data.trios.map((trio: any) => {
-        if (isLeague(trio.league) && Array.isArray(trio.teams))
-          parseTrio(
+        if (isLeague(trio.league) && Array.isArray(trio.teams)) {
+          return parseTrio(
             trio.teams.filter((teamId: any) => !isNaN(teamId)),
             trio.league
-          );
+          ).then(() => console.log('resolved 4'));
+        }
+        else {
+          console.error("trio is not valid trio");
+        }
       })
-    );
+    ).then(() => console.log('resolved 5'));
 
     if (data.finalized && leagueTrios.every((trio) => trio.size() === TeamTrio.maxTeams)) {
       finalized = true;
     }
+    console.log('parsed');
   } catch (err) {
     console.error(`Unable to parse storage data: ${err}`);
   }
@@ -69,8 +78,8 @@ const loadStorageData = async (): Promise<boolean> => {
       // on mobile device
       const triosFile = new File(storagePath);
       if (triosFile.exists) {
-        parseStorageData(triosFile.textSync());
-        console.log(leagueTrios);
+        await parseStorageData(triosFile.textSync());
+        // console.log(leagueTrios);
         return true;
       } else {
         console.log('No teams saved');
@@ -78,8 +87,8 @@ const loadStorageData = async (): Promise<boolean> => {
     } else {
       // test with dummy file
       //const data = await Asset.loadAsync(require('@/assets/storage-test.json'));
-      parseStorageData(storageTestData);
-      console.log(leagueTrios);
+      await parseStorageData(storageTestData);
+      // console.log(leagueTrios);
       console.log('loaded data');
       return true;
     }

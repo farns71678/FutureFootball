@@ -1,12 +1,12 @@
 import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
-import { isFinalized, isLoaded } from '@/user/teams';
+import { isFinalized, isLoaded, leagueTrios } from '@/user/teams';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-type LoadedState = 'loading' | 'loaded' | 'error';
+type LoadedState = 'loading' | 'loaded' | 'error' | 'loading-stats';
 
 const index = () => {
   const router = useRouter();
@@ -17,8 +17,15 @@ const index = () => {
     isLoaded().then((loaded) => {
       setLoadedState(loaded ? 'loaded' : 'error');
 
-      isFinalized().then((finalized) => {
-        if (finalized) router.navigate('/home');
+      isFinalized().then(async (finalized) => {
+        if (finalized) {
+          leagueTrios.forEach((trio) => {
+            trio.teams.forEach((team) => {
+              // todo: wait for team stats
+            });
+          });
+          router.navigate('/home');
+        }
         router.navigate('/launchpad');
       });
     });

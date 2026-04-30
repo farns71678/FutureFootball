@@ -91,9 +91,12 @@ const fetchAPIData = async (url: string) => {
     'x-rapidapi-key': process.env.EXPO_PUBLIC_API_KEY ?? '',
   };
 
-  const res = await fetch(url, { method: 'GET', headers: apiHeaders });
+  const res = await fetch(process.env.EXPO_PUBLIC_API_URL + url, { method: 'GET', headers: apiHeaders });
 
-  if (!res.ok) return null;
+  if (!res.ok) {
+    console.error(`Unable to fetch ${url}`);
+    return null;
+  }
   return await res.json();
 };
 
@@ -103,7 +106,7 @@ const fetchAPIData = async (url: string) => {
 const getTeams = async (league: League): Promise<Team[]> => {
   if (teams.size > 0) return teamArray(league);
 
-  const url = process.env.EXPO_PUBLIC_API_URL + 'teams';
+  const url = 'teams';
   const data = await fetchAPIData(url);
 
   if (Array.isArray(data)) {
@@ -126,16 +129,29 @@ const getTeams = async (league: League): Promise<Team[]> => {
  */
 const getTeam = async (id: number): Promise<Team | null> => {
   let team = teams.get(id);
-  if (teams.get(id)) return team ?? null;
+  if (team) return team;
 
-  const url = process.env.EXPO_PUBLIC_API_URL + 'teams/' + id;
+  const url = 'teams/' + id;
   const data = await fetchAPIData(url);
+  // console.log(data);
 
-  if (data && isTeamInfo(data)) {
-    const teamInfo: TeamInfo = data;
+  if (data && data[0] && isTeamInfo(data[0])) {
+    const teamInfo: TeamInfo = data[0];
     team = { info: teamInfo };
     teams.set(id, team);
+    console.log(team);
     return team;
+  }
+
+  // console.log(`Couln't get team ${id}`)
+
+  return null;
+};
+
+const loadTeamInfo = async (id: number): Promise<Team | null> => {
+  const team = teams.get(id);
+  if (team) {
+    await Promise.all([(async () => getTeamStats(team.info.id))()]);
   }
 
   return null;
@@ -145,7 +161,88 @@ const getTeam = async (id: number): Promise<Team | null> => {
  * Get team stats from api
  * @param id team id
  */
-const getTeamStats = async (id: number) => {};
+const getTeamStats = async (id: number): Promise<TeamStat | null> => {
+  const team = teams.get(id);
+  if (team && team.stats) {
+    return team.stats;
+  } else {
+    const url = '/teams/statistics?id=' + id;
+    const data = await fetchAPIData(url);
+
+    if (data && data[0] && isTeamStat(data[0])) {
+      const stats = data as TeamStat;
+      if (team) team.stats = stats;
+      return stats;
+    }
+
+    return null;
+  }
+};
+
+export type MatchState = {
+  period: number;
+  clock: number;
+  description: string;
+  score: any;
+  report: string;
+};
+
+const isMatchState = (data: any): data is MatchState => {
+  return (
+    data &&
+    typeof data.period === 'number' &&
+    typeof data.clock === 'number' &&
+    typeof data.description === 'string' &&
+    data.score &&
+    typeof data.report === 'string'
+  );
+};
+
+export type Match = {
+  id: number;
+  round: string;
+  date: Date | string;
+  league: League;
+  season: number;
+  awayTeam: TeamInfo;
+  homeTeam: TeamInfo;
+  state: MatchState;
+};
+
+const isMatch = (data: any): data is Match => {
+  return (
+    data &&
+    typeof data.id === 'number' &&
+    typeof data.round === 'string' &&
+    (typeof data.date === 'string' || data.date instanceof Date) &&
+    isLeague(data.league) &&
+    typeof data.season === 'number' &&
+    isTeamInfo(data.awayTeam) &&
+    isTeamInfo(data.homeTeam) &&
+    isMatchState(data.state)
+  );
+};
+
+const matches: Match[] = [];
+
+const getMatchData = async () => {
+  const url = '/matches';
+  const data = fetchAPIData(url);
+  // todo: finish fleshing out the /matches api endpoint
+};
+
+/**
+ * Get team matches from api
+ * @param id team id
+ */
+const getTeamMatches = async (id: number) => {
+  const team = teams.get(id);
+  if (team && team.matches) {
+    return team.matches;
+  } else {
+    await getMatchData();
+  }
+};
 
 export { getTeam, getTeams, isLeague };
 
