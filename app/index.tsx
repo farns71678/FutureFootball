@@ -1,12 +1,13 @@
 import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
+import { getTeamStats } from '@/user/api';
 import { isFinalized, isLoaded, leagueTrios } from '@/user/teams';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-type LoadedState = 'loading' | 'loaded' | 'error' | 'loading-stats';
+type LoadedState = 'loading' | 'loaded' | 'error' | 'finalized';
 
 const index = () => {
   const router = useRouter();
@@ -19,14 +20,26 @@ const index = () => {
 
       isFinalized().then(async (finalized) => {
         if (finalized) {
-          leagueTrios.forEach((trio) => {
-            trio.teams.forEach((team) => {
-              // todo: wait for team stats
+          setLoadedState('finalized');
+          Promise.all(
+            leagueTrios.map((trio) => {
+              return Promise.all(
+                trio.teams.map((team) => {
+                  // todo: wait for team stats
+                  return getTeamStats(team.info.id);
+                })
+              );
+            })
+          )
+            .then(() => {
+              router.navigate('/home');
+            })
+            .catch((err) => {
+              console.error(`Couldn't load team stats: ${err}`);
+              setLoadedState('error');
             });
-          });
-          router.navigate('/home');
         }
-        router.navigate('/launchpad');
+        if (loaded) router.navigate('/launchpad');
       });
     });
   }, []);

@@ -89,6 +89,7 @@ const fetchAPIData = async (url: string) => {
   const apiHeaders = {
     'x-rapidapi-host': process.env.EXPO_PUBLIC_API_HOST ?? '',
     'x-rapidapi-key': process.env.EXPO_PUBLIC_API_KEY ?? '',
+    'Cache-Control': 'max-age=' + 60 * 60,
   };
 
   const res = await fetch(process.env.EXPO_PUBLIC_API_URL + url, { method: 'GET', headers: apiHeaders });
@@ -157,6 +158,12 @@ const loadTeamInfo = async (id: number): Promise<Team | null> => {
   return null;
 };
 
+const getSeasonDate = () => {
+  const date = new Date();
+  const year = date.getFullYear() - (date.getMonth() > 5 ? 0 : 1);
+  return year + '-07-01';
+};
+
 /**
  * Get team stats from api
  * @param id team id
@@ -166,7 +173,9 @@ const getTeamStats = async (id: number): Promise<TeamStat | null> => {
   if (team && team.stats) {
     return team.stats;
   } else {
-    const url = '/teams/statistics?id=' + id;
+    // figure out date
+
+    const url = 'teams/statistics/' + id + '?fromDate=' + getSeasonDate();
     const data = await fetchAPIData(url);
 
     if (data && data[0] && isTeamStat(data[0])) {
@@ -244,5 +253,5 @@ const getTeamMatches = async (id: number) => {
   }
 };
 
-export { getTeam, getTeams, isLeague };
+export { getTeam, getTeams, getTeamStats, isLeague };
 
