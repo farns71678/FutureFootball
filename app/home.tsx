@@ -3,12 +3,73 @@ import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
 import { leagueTrios } from '@/user/teams';
 import Entypo from '@expo/vector-icons/Entypo';
-import React, { useState } from 'react';
+import React, { SVGAttributes, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 type TotalStats = {
   wins: number;
   loses: number;
+};
+
+const StatCircle = ({ stats, style }: SVGAttributes<SVGSVGElement> & { stats: TotalStats }) => {
+  const total = 100;
+  const radius = 30;
+  const strokeWidth = 5;
+  const space = (strokeWidth / 300) * Math.PI * 2;
+  const cx = 50;
+  const cy = 50;
+
+  const arcPath = (startDeg: number, endDeg: number) => {
+    if (startDeg === endDeg) return '';
+
+    const degLength = endDeg - startDeg - space * 2;
+    const sx = cx + radius * Math.cos(space + startDeg);
+    const sy = cy + radius * Math.sin(space + startDeg);
+    const ex = cx + radius * Math.cos(endDeg - space);
+    const ey = cy + radius * Math.sin(endDeg - space);
+    let d = `M ${sx} ${sy} A ${radius} ${radius}, 0, ${degLength > Math.PI ? 1 : 0}, 1, ${ex} ${ey}`;
+    return d;
+  };
+
+  // lose bar
+  const loses = stats.loses;
+  const loseDeg = (loses / total) * Math.PI * 2;
+  // const deg = (loses / total) * Math.PI * 2;
+  // const ax = radius * Math.cos(deg - space) + cx;
+  // const ay = radius * Math.sin(deg - space) + cy;
+  // let d = `M ${cx + radius * Math.cos(space)} ${cy + radius * Math.sin(space)} A ${radius} ${radius}, 0, ${deg > Math.PI ? 1 : 0}, 1, ${ax} ${ay}`;
+  let ld = arcPath(0, loseDeg);
+
+  // win bar
+  const wins = stats.wins;
+  const winDeg = (wins / total) * Math.PI * 2;
+  // const ldeg = (wins / total) * Math.PI * 2 + deg - space;
+  // const wx = radius * Math.cos(deg + space) + cx;
+  // const wy = radius * Math.sin(deg + space) + cx;
+  // let wd = `M ${wx} ${wy} A ${radius} ${radius}, 0, ${ldeg - deg > Math.PI ? 1 : 0}, 1, ${radius * Math.cos(ldeg) + cx} ${radius * Math.sin(ldeg) + cy}`;
+  let wd = arcPath(loseDeg, winDeg + loseDeg);
+
+  return (
+    <svg width="100%" height="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={style}>
+      <g transform={`rotate(-90 ${cx} ${cy})`}>
+        <circle cx={cx} cy={cy} r={radius - 5} fill="#677" />
+        <path d={wd} fill="transparent" stroke="skyblue" strokeWidth={strokeWidth} strokeLinecap="round" />
+        <path d={ld} fill="transparent" stroke="red" strokeWidth={strokeWidth} strokeLinecap="round" />
+      </g>
+      <text
+        x={cx}
+        y={cy + 4}
+        fill="white"
+        fontSize={30}
+        fontWeight={'bold'}
+        fontFamily="Arial"
+        dominantBaseline="middle"
+        textAnchor="middle"
+      >
+        {wins}
+      </text>
+    </svg>
+  );
 };
 
 const Home = () => {
@@ -51,27 +112,8 @@ const Home = () => {
           <ThemedText type="title">Future Football</ThemedText>
         </View>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-          <View
-            style={{
-              backgroundColor: Theme.main,
-              padding: 40,
-              borderRadius: '50%',
-              justifyContent: 'center',
-              alignContent: 'center',
-            }}
-          >
-            <View
-              style={{
-                aspectRatio: 1,
-                height: 'auto',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <ThemedText style={{ fontSize: 64, fontWeight: 'bold' }}> {totalStats.wins} </ThemedText>
-            </View>
-          </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', height: '20%', alignItems: 'stretch' }}>
+          <StatCircle stats={totalStats} style={{ height: '100%' }} />
         </View>
 
         {leagueTrios.map((trio) => (
