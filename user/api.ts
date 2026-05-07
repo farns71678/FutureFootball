@@ -38,10 +38,11 @@ export type TeamStat = {
 
 const isTeamStat = (data: any): data is TeamStat => {
   return (
+    data && 
     isStat(data.total) &&
     isStat(data.home) &&
     isStat(data.away) &&
-    isLeague(data.league) &&
+    isLeague(data.leagueName) &&
     typeof data.round === 'string'
   );
 };
@@ -68,7 +69,7 @@ const isTeamInfo = (data: any): data is TeamInfo => {
 
 export type Team = {
   info: TeamInfo;
-  stats?: TeamStat;
+  stats?: TeamStat[];
   matches?: [];
 };
 
@@ -168,7 +169,7 @@ const getSeasonDate = () => {
  * Get team stats from api
  * @param id team id
  */
-const getTeamStats = async (id: number): Promise<TeamStat | null> => {
+const getTeamStats = async (id: number): Promise<TeamStat[] | null> => {
   const team = teams.get(id);
   if (team && team.stats) {
     return team.stats;
@@ -178,8 +179,8 @@ const getTeamStats = async (id: number): Promise<TeamStat | null> => {
     const url = 'teams/statistics/' + id + '?fromDate=' + getSeasonDate();
     const data = await fetchAPIData(url);
 
-    if (data && data[0] && isTeamStat(data[0])) {
-      const stats = data as TeamStat;
+    if (data && Array.isArray(data) && data.every(isTeamStat)) {
+      const stats = data as TeamStat[];
       if (team) team.stats = stats;
       return stats;
     }

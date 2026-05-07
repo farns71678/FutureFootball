@@ -1,6 +1,7 @@
 import TeamRow from '@/components/TeamRow';
 import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
+import { Team } from '@/user/api';
 import { leagueTrios } from '@/user/teams';
 import Entypo from '@expo/vector-icons/Entypo';
 import React, { SVGAttributes, useState } from 'react';
@@ -12,7 +13,7 @@ type TotalStats = {
 };
 
 const StatCircle = ({ stats, style }: SVGAttributes<SVGSVGElement> & { stats: TotalStats }) => {
-  const total = 100;
+  const total = stats.loses + stats.wins;
   const radius = 30;
   const strokeWidth = 5;
   const space = (strokeWidth / 300) * Math.PI * 2;
@@ -33,7 +34,7 @@ const StatCircle = ({ stats, style }: SVGAttributes<SVGSVGElement> & { stats: To
 
   // lose bar
   const loses = stats.loses;
-  const loseDeg = (loses / total) * Math.PI * 2;
+  const loseDeg = (total === 0 ? total : loses / total) * Math.PI * 2;
   // const deg = (loses / total) * Math.PI * 2;
   // const ax = radius * Math.cos(deg - space) + cx;
   // const ay = radius * Math.sin(deg - space) + cy;
@@ -42,7 +43,7 @@ const StatCircle = ({ stats, style }: SVGAttributes<SVGSVGElement> & { stats: To
 
   // win bar
   const wins = stats.wins;
-  const winDeg = (wins / total) * Math.PI * 2;
+  const winDeg = (total === 0 ? total : wins / total) * Math.PI * 2;
   // const ldeg = (wins / total) * Math.PI * 2 + deg - space;
   // const wx = radius * Math.cos(deg + space) + cx;
   // const wy = radius * Math.sin(deg + space) + cx;
@@ -73,18 +74,30 @@ const StatCircle = ({ stats, style }: SVGAttributes<SVGSVGElement> & { stats: To
 };
 
 const Home = () => {
+  const getTeamTotalStats = (team: Team) => {
+    return team.stats ? team.stats.reduce((total, stat) => {
+      total.wins += stat.total.games.wins;
+      total.loses += stat.total.games.loses;
+      return total;
+    }, { wins: 0, loses: 0 } as TotalStats) : { wins: 0, loses: 0 };
+  }
+
   const getTotalStats = () => {
     const stats: TotalStats = { wins: 0, loses: 0 };
 
+    console.log(leagueTrios);
     leagueTrios.forEach((trio) => {
       trio.getTeams().forEach((team) => {
         if (team.stats) {
-          stats.wins += team.stats.total.games.wins;
-          stats.loses += team.stats.total.games.loses;
+          team.stats.forEach((stat) => {
+          stats.wins += stat.total.games.wins;
+          stats.loses += stat.total.games.loses;
+          });
         }
       });
     });
 
+    console.log(stats);
     return stats;
   };
 
@@ -138,6 +151,7 @@ const Home = () => {
             </View>
             {trio.teams.length > 0 ? (
               trio.teams.map((team, index) => {
+                const total = getTeamTotalStats(team);
                 return (
                   <TeamRow
                     team={team.info}
@@ -146,11 +160,11 @@ const Home = () => {
                       team.stats && (
                         <View style={{ flexDirection: 'row' }}>
                           <View>
-                            <Text style={{ color: Theme.error }}>{team.stats.total.games.loses}</Text>
+                            <Text style={{ color: Theme.error }}>{total.loses}</Text>
                           </View>
 
                           <View>
-                            <Text style={{ color: Theme.text }}>{team.stats.total.games.wins}</Text>
+                            <Text style={{ color: Theme.text }}>{total.wins}</Text>
                           </View>
                         </View>
                       )
