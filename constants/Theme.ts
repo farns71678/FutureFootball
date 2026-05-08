@@ -10,6 +10,8 @@ const Theme = {
   errorExtra: "#c23e3a",
   colorfulError: "#c23e3a",
   colorfulErrorExtra: "#c23e3a",
+  win: "#2CC7FF",
+  lose: "#FF6E62"
 } as const;
 
 export default Theme;

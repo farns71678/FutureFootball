@@ -28,12 +28,18 @@ const isStat = (data: any): data is Stat => {
   );
 };
 
+export type StatRound = 'regular-season' | 'post-season' | 'preseason';
+
+const isStatRound = (data: any): data is StatRound => {
+  return data === 'regular-season' || data === 'post-season' || data === 'preseason';
+};
+
 export type TeamStat = {
   total: Stat;
   home: Stat;
   away: Stat;
   leagueName: League;
-  round: string;
+  round: StatRound;
 };
 
 const isTeamStat = (data: any): data is TeamStat => {
@@ -43,7 +49,7 @@ const isTeamStat = (data: any): data is TeamStat => {
     isStat(data.home) &&
     isStat(data.away) &&
     isLeague(data.leagueName) &&
-    typeof data.round === 'string'
+    isStatRound(data.round)
   );
 };
 
