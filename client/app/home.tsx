@@ -1,13 +1,14 @@
 import TeamRow from '@/components/TeamRow';
 import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
-import { StatRound, Team } from '@/user/api';
+import { League, StatRound, Team, TeamInfo } from '@/user/api';
 import { leagueTrios } from '@/user/teams';
+import { TeamTrio } from '@/user/teamTrio';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Entypo from '@expo/vector-icons/Entypo';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import React, { SVGAttributes, useState } from 'react';
+import React, { SVGAttributes, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 type TotalStats = {
@@ -68,13 +69,30 @@ const StatCircle = ({ stats, style }: SVGAttributes<SVGSVGElement> & { stats: To
   );
 };
 
+type StatFilter = {
+  round: StatRound;
+  visible: boolean;
+};
+
+interface DisplayTeam {
+  info: TeamInfo;
+  stats: TotalStats;
+}
+
+interface DisplayLeague {
+  league: League;
+  teams: DisplayTeam[];
+}
+
 const Home = () => {
-  const getTeamTotalStats = (team: Team) => {
+  const getTeamFilteredStats = (team: Team, filters: StatFilter[] | undefined = undefined): TotalStats => {
     return team.stats
       ? team.stats.reduce(
           (total, stat) => {
-            total.wins += stat.total.games.wins;
-            total.loses += stat.total.games.loses;
+            if (!filters || filters.some((filter) => filter.round === stat.round && filter.visible)) {
+              total.wins += stat.total.games.wins;
+              total.loses += stat.total.games.loses;
+            }
             return total;
           },
           { wins: 0, loses: 0 } as TotalStats
@@ -82,35 +100,76 @@ const Home = () => {
       : { wins: 0, loses: 0 };
   };
 
-  const getTotalStats = () => {
+  const getTeamTotalStats = (team: Team) => {
+    return getTeamFilteredStats(team);
+  };
+
+  const getTotalFilteredStats = (filters: StatFilter[] | undefined = undefined): TotalStats => {
     const stats: TotalStats = { wins: 0, loses: 0 };
 
-    console.log(leagueTrios);
     leagueTrios.forEach((trio) => {
       trio.getTeams().forEach((team) => {
-        if (team.stats) {
-          team.stats.forEach((stat) => {
-            stats.wins += stat.total.games.wins;
-            stats.loses += stat.total.games.loses;
-          });
-        }
+        const teamStats = getTeamFilteredStats(team, filters);
+        stats.wins += teamStats.wins;
+        stats.loses += teamStats.loses;
       });
     });
 
-    console.log(stats);
     return stats;
+  };
+
+  const getTotalStats = () => {
+    return getTotalFilteredStats();
+  };
+
+  const toggleStatFilter = (round: StatRound) => {
+    setRoundFilters(
+      roundFilters.map((filter) =>
+        filter.round === round ? { round: filter.round, visible: !filter.visible } : filter
+      )
+    );
+  };
+
+  const toggleFilterVisibility = () => {
+    setRoundFiltersVisible(!roundFiltersVisible);
+  };
+
+  const getDisplayLeagues = (leagues: TeamTrio[], filters: StatFilter[] | undefined = undefined): DisplayLeague[] => {
+    return leagues.map((trio) => ({
+      league: trio.league,
+      teams: trio
+        .getTeams()
+        .map((team) => ({ info: team.info, stats: getTeamFilteredStats(team, filters) }))
+        .toSorted((a, b) => b.stats.wins - a.stats.wins),
+    }));
   };
 
   const [totalStats, setTotalStats] = useState(getTotalStats());
 
   const rounds: StatRound[] = ['regular-season', 'post-season', 'preseason'] as const;
 
+  const [roundFilters, setRoundFilters] = useState(rounds.map((round) => ({ round, visible: true })));
+
+  const [displayLeagues, setDisplayLeagues] = useState(getDisplayLeagues([...leagueTrios], roundFilters));
+
+  const [roundFiltersVisible, setRoundFiltersVisible] = useState(false);
+
+  useEffect(() => {
+    setTotalStats(getTotalFilteredStats(roundFilters));
+
+    setDisplayLeagues(getDisplayLeagues([...leagueTrios], roundFilters));
+  }, [roundFilters]);
+
   /**
    * Returns round that looks more like a title
    * @param round a stat round
    */
   const statRoundTitle = (round: StatRound) => {
-    // todo: implement title function
+    return round
+      .replaceAll('-', ' ')
+      .split(' ')
+      .map((word) => word[0].toUpperCase() + word.substring(1))
+      .reduce((prev, word) => prev + (prev.length > 0 ? ' ' : '') + word, '');
   };
 
   return (
@@ -139,29 +198,52 @@ const Home = () => {
           {/* Filter options */}
           <View style={styles.filter_container}>
             <View style={styles.filter_top_row}>
-              <Pressable>
-                <Ionicons name="options-sharp" size={24} color={Theme.sub} />
+              <Pressable
+                onPress={toggleFilterVisibility}
+                style={({ pressed }) => [
+                  styles.filter_option_btn,
+                  pressed ? styles.filter_option_btn_pressed : undefined,
+                ]}
+              >
+                {({ pressed }) => <Ionicons name="options-sharp" size={24} color={pressed ? Theme.text : Theme.sub} />}
               </Pressable>
-              <Pressable>
-                <AntDesign name="close" size={24} color={Theme.sub} />
-              </Pressable>
+
+              {roundFiltersVisible && (
+                <Pressable
+                  onPress={toggleFilterVisibility}
+                  style={({ pressed }) => [
+                    styles.filter_option_btn,
+                    pressed ? styles.filter_option_btn_pressed : undefined,
+                  ]}
+                >
+                  {({ pressed }) => <AntDesign name="close" size={24} color={pressed ? Theme.text : Theme.sub} />}
+                </Pressable>
+              )}
             </View>
-            <View style={styles.filter_options}>
-              {rounds.map((round) => {
-                return (
-                  <Pressable style={styles.filter_option}>
-                    <MaterialCommunityIcons name="checkbox-blank-circle-outline" size={20} color={Theme.main} />
-                    <ThemedText style={styles.filter_option_text}>{round}</ThemedText>
-                  </Pressable>
-                );
-              })}
-            </View>
+            {roundFiltersVisible && (
+              <View style={styles.filter_options}>
+                {roundFilters.map((filter) => {
+                  return (
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.filter_option,
+                        pressed ? styles.filter_option_pressed : undefined,
+                      ]}
+                      onPress={() => toggleStatFilter(filter.round)}
+                    >
+                      <FontAwesome name={filter.visible ? 'circle' : 'circle-o'} size={20} color={Theme.main} />
+                      <ThemedText style={styles.filter_option_text}>{statRoundTitle(filter.round)}</ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
           </View>
 
           <StatCircle stats={totalStats} />
         </View>
 
-        {leagueTrios.map((trio) => (
+        {displayLeagues.map((trio) => (
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center', padding: 4, marginBottom: 4 }}>
               <ThemedText type={'subtitle'}>{trio.league} Teams</ThemedText>
@@ -182,32 +264,30 @@ const Home = () => {
               </Pressable>
             </View>
             {trio.teams.length > 0 ? (
-              trio.teams
-                .sort((a, b) => getTeamTotalStats(b).wins - getTeamTotalStats(a).wins)
-                .map((team, index) => {
-                  const total = getTeamTotalStats(team);
-                  return (
-                    <TeamRow
-                      team={team.info}
-                      key={trio.league + '-' + index}
-                      button={
-                        team.stats && (
-                          <View style={{ flexDirection: 'row' }}>
-                            <View style={styles.stat_text_container}>
-                              <Text style={[styles.stat_text, { color: Theme.lose, textAlign: 'left' }]}>
-                                {total.loses}
-                              </Text>
-                            </View>
-
-                            <View style={styles.stat_text_container}>
-                              <Text style={[styles.stat_text, { color: Theme.win }]}>{total.wins}</Text>
-                            </View>
+              trio.teams.map((team, index) => {
+                const total = team.stats;
+                return (
+                  <TeamRow
+                    team={team.info}
+                    key={trio.league + '-' + index}
+                    button={
+                      team.stats && (
+                        <View style={{ flexDirection: 'row' }}>
+                          <View style={styles.stat_text_container}>
+                            <Text style={[styles.stat_text, { color: Theme.lose, textAlign: 'left' }]}>
+                              {total.loses}
+                            </Text>
                           </View>
-                        )
-                      }
-                    />
-                  );
-                })
+
+                          <View style={styles.stat_text_container}>
+                            <Text style={[styles.stat_text, { color: Theme.win }]}>{total.wins}</Text>
+                          </View>
+                        </View>
+                      )
+                    }
+                  />
+                );
+              })
             ) : (
               <View style={{ paddingHorizontal: 8 }}>
                 <ThemedText>You have no {trio.league} teams. Click the arrow to add teams.</ThemedText>
@@ -271,7 +351,16 @@ const styles = StyleSheet.create({
     padding: 2,
     alignItems: 'center',
   },
-  filter_option_btn: {},
+  filter_option_pressed: {
+    backgroundColor: '#fffc',
+  },
+  filter_option_btn: {
+    padding: 3,
+    borderRadius: 4,
+  },
+  filter_option_btn_pressed: {
+    backgroundColor: '#0008',
+  },
   filter_option_text: {
     fontWeight: '600',
     fontSize: 20,
