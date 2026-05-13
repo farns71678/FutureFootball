@@ -28,21 +28,28 @@ const isStat = (data: any): data is Stat => {
   );
 };
 
+export type StatRound = 'regular-season' | 'post-season' | 'preseason';
+
+const isStatRound = (data: any): data is StatRound => {
+  return data === 'regular-season' || data === 'post-season' || data === 'preseason';
+};
+
 export type TeamStat = {
   total: Stat;
   home: Stat;
   away: Stat;
   leagueName: League;
-  round: string;
+  round: StatRound;
 };
 
 const isTeamStat = (data: any): data is TeamStat => {
   return (
+    data && 
     isStat(data.total) &&
     isStat(data.home) &&
     isStat(data.away) &&
-    isLeague(data.league) &&
-    typeof data.round === 'string'
+    isLeague(data.leagueName) &&
+    isStatRound(data.round)
   );
 };
 
@@ -68,7 +75,7 @@ const isTeamInfo = (data: any): data is TeamInfo => {
 
 export type Team = {
   info: TeamInfo;
-  stats?: TeamStat;
+  stats?: TeamStat[];
   matches?: [];
 };
 
@@ -89,6 +96,7 @@ const fetchAPIData = async (url: string) => {
   const apiHeaders = {
     'x-rapidapi-host': process.env.EXPO_PUBLIC_API_HOST ?? '',
     'x-rapidapi-key': process.env.EXPO_PUBLIC_API_KEY ?? '',
+    'Cache-Control': 'max-age=' + 60 * 60,
   };
 
   const res = await fetch(process.env.EXPO_PUBLIC_API_URL + url, { method: 'GET', headers: apiHeaders });
@@ -157,20 +165,28 @@ const loadTeamInfo = async (id: number): Promise<Team | null> => {
   return null;
 };
 
+const getSeasonDate = () => {
+  const date = new Date();
+  const year = date.getFullYear() - (date.getMonth() > 5 ? 0 : 1);
+  return year + '-07-01';
+};
+
 /**
  * Get team stats from api
  * @param id team id
  */
-const getTeamStats = async (id: number): Promise<TeamStat | null> => {
+const getTeamStats = async (id: number): Promise<TeamStat[] | null> => {
   const team = teams.get(id);
   if (team && team.stats) {
     return team.stats;
   } else {
-    const url = '/teams/statistics?id=' + id;
+    // figure out date
+
+    const url = 'teams/statistics/' + id + '?fromDate=' + getSeasonDate();
     const data = await fetchAPIData(url);
 
-    if (data && data[0] && isTeamStat(data[0])) {
-      const stats = data as TeamStat;
+    if (data && Array.isArray(data) && data.every(isTeamStat)) {
+      const stats = data as TeamStat[];
       if (team) team.stats = stats;
       return stats;
     }
@@ -244,5 +260,5 @@ const getTeamMatches = async (id: number) => {
   }
 };
 
-export { getTeam, getTeams, isLeague };
+export { getTeam, getTeams, getTeamStats, isLeague };
 
