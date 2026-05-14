@@ -8,7 +8,7 @@ import {
   type Team,
   type TeamInfo,
   type TeamStat,
-} from './api_types.js';
+} from './api-types.js';
 
 const apiCache = new NodeCache();
 
@@ -46,7 +46,7 @@ const getTeams = async (league: League): Promise<TeamInfo[] | null> => {
   const url = 'teams';
   const data = await fetchAPIData(url);
 
-  if (Array.isArray(data) && data.every((team) => isTeamInfo(team))) {
+  if (Array.isArray(data) && data.length > 0 && data.every((team) => isTeamInfo(team))) {
     return data as TeamInfo[];
   }
 

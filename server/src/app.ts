@@ -1,12 +1,14 @@
 import express from 'express';
 import config from './config/config.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import apiRoutes from './routes/apiRoutes.js';
 const app = express();
 const port = process.env.PORT || 3300;
 
 app.use(express.json());
 
-// todo: add routes here
+// api routes
+app.use(apiRoutes);
 
 app.use(errorHandler);
 
