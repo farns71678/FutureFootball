@@ -1,6 +1,6 @@
 import { File } from 'expo-file-system';
 import { Platform } from 'react-native';
-import { getTeam, isLeague, League } from './api';
+import { getSeason, getTeam, isLeague, League } from './api';
 import { storageTestData } from './storage-test';
 import { TeamTrio } from './teamTrio';
 
@@ -43,7 +43,8 @@ file structure:
       teams: number[] (team ids)
     }
   ],
-  finalized: boolean
+  finalized: boolean,
+  season: number (year)
 }
 */
 
@@ -52,8 +53,11 @@ const parseStorageData = async (file: string) => {
     const data = JSON.parse(file);
     if (!Array.isArray(data.trios)) {
       console.error('data.trios is not an array');
-      return;
+      return false;
     }
+
+    // if the season doesn't exist (it should), or the season is too early
+    if (!data.season || parseInt(data.season) < getSeason()) return true;
 
     await Promise.all(
       data.trios.map((trio: any) => {
@@ -108,7 +112,7 @@ const loadStorageData = async (): Promise<boolean> => {
   return false;
 };
 
-const loadedState = loadStorageData();
+let loadedState = loadStorageData();
 
 const formatStorageData = (finalized: boolean) => {
   const data: any = { finalized };
@@ -127,6 +131,9 @@ const saveStorageData = () => {
     } else {
       // well, this doesn't work
     }
+
+    loadedState = new Promise((resolve) => resolve(true));
+    finalized = true;
   } catch (err) {
     console.error(err);
   }

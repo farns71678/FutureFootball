@@ -140,7 +140,9 @@ const Home = () => {
       teams: trio
         .getTeams()
         .map((team) => ({ info: team.info, stats: getTeamFilteredStats(team, filters) }))
-        .toSorted((a, b) => b.stats.wins - a.stats.wins),
+        .toSorted((a, b) =>
+          b.stats.wins === a.stats.wins ? a.stats.loses - b.stats.loses : b.stats.wins - a.stats.wins
+        ),
     }));
   };
 

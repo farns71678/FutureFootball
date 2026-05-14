@@ -165,9 +165,13 @@ const loadTeamInfo = async (id: number): Promise<Team | null> => {
   return null;
 };
 
-const getSeasonDate = () => {
+const getSeason = () => {
   const date = new Date();
-  const year = date.getFullYear() - (date.getMonth() > 5 ? 0 : 1);
+  return date.getFullYear() - (date.getMonth() > 5 ? 0 : 1);
+}
+
+const getSeasonDate = () => {
+  const year = getSeason();
   return year + '-07-01';
 };
 
@@ -260,5 +264,5 @@ const getTeamMatches = async (id: number) => {
   }
 };
 
-export { getTeam, getTeams, getTeamStats, isLeague };
+export { getSeason, getTeam, getTeams, getTeamStats, isLeague };
 

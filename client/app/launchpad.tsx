@@ -72,7 +72,18 @@ export default function Index() {
               onPress={() => {
                 console.log('confirming teams');
                 saveData();
-                router.navigate('/home');
+                // Promise.all(
+                //   leagueTrios.map((trio) => {
+                //     return Promise.all(
+                //       trio.teams.map((team) => {
+                //         // todo: wait for team stats
+                //         return getTeamStats(team.info.id);
+                //       })
+                //     );
+                //   })
+                // ).then(() => router.navigate('/home'))
+                router.navigate('/');
+                
               }}
             >
               <ThemedText type="defaultSemiBold" style={{ fontSize: 20 }}>

@@ -9,5 +9,6 @@ export const storageTestData = `{
             "teams": [92844, 92842, 383647]
         }
     ],
-    "finalized": true
+    "finalized": true,
+    "season": 2024
 }`;

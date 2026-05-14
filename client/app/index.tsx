@@ -3,8 +3,8 @@ import Theme from '@/constants/Theme';
 import { getTeamStats } from '@/user/api';
 import { isFinalized, isLoaded, leagueTrios } from '@/user/teams';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 type LoadedState = 'loading' | 'loaded' | 'error' | 'finalized';
@@ -13,36 +13,40 @@ const index = () => {
   const router = useRouter();
   const [loadedState, setLoadedState] = useState('loading' as LoadedState);
 
-  useEffect(() => {
-    // load file data
-    isLoaded().then((loaded) => {
-      setLoadedState(loaded ? 'loaded' : 'error');
+  useEffect(() => {}, []);
 
-      isFinalized().then(async (finalized) => {
-        if (finalized) {
-          setLoadedState('finalized');
-          Promise.all(
-            leagueTrios.map((trio) => {
-              return Promise.all(
-                trio.teams.map((team) => {
-                  // todo: wait for team stats
-                  return getTeamStats(team.info.id);
-                })
-              );
-            })
-          )
-            .then(() => {
-              router.navigate('/home');
-            })
-            .catch((err) => {
-              console.error(`Couldn't load team stats: ${err}`);
-              setLoadedState('error');
-            });
-        }
-        if (loaded) router.navigate('/launchpad');
+  useFocusEffect(
+    useCallback(() => {
+      // load file data
+      isLoaded().then((loaded) => {
+        setLoadedState(loaded ? 'loaded' : 'error');
+
+        isFinalized().then(async (finalized) => {
+          if (finalized) {
+            setLoadedState('finalized');
+            Promise.all(
+              leagueTrios.map((trio) => {
+                return Promise.all(
+                  trio.teams.map((team) => {
+                    // todo: wait for team stats
+                    return getTeamStats(team.info.id);
+                  })
+                );
+              })
+            )
+              .then(() => {
+                router.navigate('/home');
+              })
+              .catch((err) => {
+                console.error(`Couldn't load team stats: ${err}`);
+                setLoadedState('error');
+              });
+          }
+          if (loaded) router.navigate('/launchpad');
+        });
       });
-    });
-  }, []);
+    }, [])
+  );
 
   return (
     <ThemedView style={[styles.container]} safe={true}>

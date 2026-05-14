@@ -45,3 +45,5 @@ app-example
 /android
 
 storage-test.json
+
+client/.gitignore
