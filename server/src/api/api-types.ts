@@ -16,7 +16,7 @@ export type Stat = {
   };
 };
 
-export const isStat = (data: any): data is Stat => {
+const isStat = (data: any): data is Stat => {
   return (
     data.games &&
     typeof data.games.played === 'number' &&
@@ -28,21 +28,28 @@ export const isStat = (data: any): data is Stat => {
   );
 };
 
+export type StatRound = 'regular-season' | 'post-season' | 'preseason';
+
+export const isStatRound = (data: any): data is StatRound => {
+  return data === 'regular-season' || data === 'post-season' || data === 'preseason';
+};
+
 export type TeamStat = {
   total: Stat;
   home: Stat;
   away: Stat;
   leagueName: League;
-  round: string;
+  round: StatRound;
 };
 
 export const isTeamStat = (data: any): data is TeamStat => {
   return (
+    data && 
     isStat(data.total) &&
     isStat(data.home) &&
     isStat(data.away) &&
-    isLeague(data.league) &&
-    typeof data.round === 'string'
+    isLeague(data.leagueName) &&
+    isStatRound(data.round)
   );
 };
 

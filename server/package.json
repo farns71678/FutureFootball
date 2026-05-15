@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node build/app.js",
-    "dev": "npx nodemon --watch src/**/*.ts --exec ts-node src/app.ts",
+    "dev": "npx nodemon --inspect src/app.ts",
     "build": "npx tsc",
     "lint": "eslint 'src/**/*.ts'"
   },
@@ -24,7 +24,7 @@
     "@types/node": "^25.7.0",
     "eslint": "^10.3.0",
     "nodemon": "^3.1.14",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.22.0",
     "typescript": "^6.0.3"
   }
 }

@@ -88,18 +88,10 @@ const teamArray = (league?: League): Team[] => {
     .filter((team) => !league || team.info.league === league);
 };
 
-//const fetchMap = new Map<string, any>();
 
-// todo: maybe cache responses
 const fetchAPIData = async (url: string) => {
-  //if (fetchMap.has(url)) reu
-  const apiHeaders = {
-    'x-rapidapi-host': process.env.EXPO_PUBLIC_API_HOST ?? '',
-    'x-rapidapi-key': process.env.EXPO_PUBLIC_API_KEY ?? '',
-    'Cache-Control': 'max-age=' + 60 * 60,
-  };
 
-  const res = await fetch(process.env.EXPO_PUBLIC_API_URL + url, { method: 'GET', headers: apiHeaders });
+  const res = await fetch(process.env.EXPO_PUBLIC_SERVER_URL + url);
 
   if (!res.ok) {
     console.error(`Unable to fetch ${url}`);
@@ -114,7 +106,7 @@ const fetchAPIData = async (url: string) => {
 const getTeams = async (league: League): Promise<Team[]> => {
   if (teams.size > 0) return teamArray(league);
 
-  const url = 'teams';
+  const url = 'teams/' + league;
   const data = await fetchAPIData(url);
 
   if (Array.isArray(data)) {
@@ -139,7 +131,7 @@ const getTeam = async (id: number): Promise<Team | null> => {
   let team = teams.get(id);
   if (team) return team;
 
-  const url = 'teams/' + id;
+  const url = 'teaminfo/' + id;
   const data = await fetchAPIData(url);
   // console.log(data);
 
@@ -186,7 +178,7 @@ const getTeamStats = async (id: number): Promise<TeamStat[] | null> => {
   } else {
     // figure out date
 
-    const url = 'teams/statistics/' + id + '?fromDate=' + getSeasonDate();
+    const url = 'teamstats/' + id;
     const data = await fetchAPIData(url);
 
     if (data && Array.isArray(data) && data.every(isTeamStat)) {
