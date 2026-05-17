@@ -10,5 +10,5 @@ export const storageTestData = `{
         }
     ],
     "finalized": true,
-    "season": 2024
+    "season": 2026
 }`;

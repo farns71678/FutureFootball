@@ -24,7 +24,7 @@ const parseTrio = async (data: number[], league: League) => {
               if (team) {
                 trio.addTeam(team);
               } else {
-                throw 'Unable to get team';
+                throw 'Unable to get team: ' + teamId;
               }
             })
           )

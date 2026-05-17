@@ -302,7 +302,7 @@ const TeamSelect = () => {
               }}
             >
               {trioTeams.map((team: Team) => (
-                <View style={{ paddingBottom: 3, flexShrink: 1 }}>
+                <View key={'team-listed-' + team.info.id} style={{ paddingBottom: 3, flexShrink: 1 }}>
                   <View
                     style={{
                       flexDirection: 'row',

@@ -9,14 +9,13 @@ export const teamInfo_get = async (req: Request, res: Response) => {
 
     const data = await getTeamInfo(id);
     if (data === null) {
-      res.status(500).json(JSON.stringify({ error: 'Unable to get team info' }));
+      res.status(500).json({ error: 'Unable to get team info' });
       return;
     }
 
-    res.json(JSON.stringify(data));
-  }
-  else {
-    res.status(400).json(JSON.stringify({ error: "Team ID required" }));
+    res.json(data);
+  } else {
+    res.status(400).json({ error: 'Team ID required' });
   }
 };
 
@@ -30,14 +29,13 @@ export const teamStats_get = async (req: Request, res: Response) => {
 
     const data = await getTeamStats(id, season);
     if (data === null) {
-      res.status(500).json(JSON.stringify({ error: 'Unable to get team stats' }));
+      res.status(500).json({ error: 'Unable to get team stats' });
       return;
     }
 
-    res.json(JSON.stringify(data));
-  }
-  else {
-    res.status(400).json(JSON.stringify({ error: "Team ID required" }));
+    res.json(data);
+  } else {
+    res.status(400).json({ error: 'Team ID required' });
   }
 };
 
@@ -51,18 +49,27 @@ export const team_get = async (req: Request, res: Response) => {
 
     const data = await getTeam(id, season);
     if (data === null) {
-      res.status(500).json(JSON.stringify({ error: 'Unable to get team' }));
+      res.status(500).json({ error: 'Unable to get team' });
       return;
     }
 
-    res.json(JSON.stringify(data));
-  }
-  else {
-    res.status(400).json(JSON.stringify({ error: "Team ID required" }));
+    res.json(data);
+  } else {
+    res.status(400).json({ error: 'Invalid query' });
   }
 };
 
 export const teams_get = async (req: Request, res: Response) => {
+  const data = await getTeams();
+  if (data === null) {
+    res.status(500).json({ error: 'Unable to get league teams' });
+    return;
+  }
+
+  res.json(data);
+};
+
+export const leagueTeams_get = async (req: Request, res: Response) => {
   const queryLeague = req.params.league;
 
   if (isLeague(queryLeague)) {
@@ -70,13 +77,12 @@ export const teams_get = async (req: Request, res: Response) => {
 
     const data = await getTeams(league);
     if (data === null) {
-      res.status(500).json(JSON.stringify({ error: 'Unable to get league teams' }));
+      res.status(500).json({ error: 'Unable to get league teams' });
       return;
     }
 
-    res.json(JSON.stringify(data));
-  }
-  else {
-    res.status(400).json(JSON.stringify({ error: "Team ID required" }));
+    res.json(data);
+  } else {
+    res.status(400).json({ error: 'League required' });
   }
 };

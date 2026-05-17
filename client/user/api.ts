@@ -44,7 +44,7 @@ export type TeamStat = {
 
 const isTeamStat = (data: any): data is TeamStat => {
   return (
-    data && 
+    data &&
     isStat(data.total) &&
     isStat(data.home) &&
     isStat(data.away) &&
@@ -88,9 +88,7 @@ const teamArray = (league?: League): Team[] => {
     .filter((team) => !league || team.info.league === league);
 };
 
-
 const fetchAPIData = async (url: string) => {
-
   const res = await fetch(process.env.EXPO_PUBLIC_SERVER_URL + url);
 
   if (!res.ok) {
@@ -106,7 +104,7 @@ const fetchAPIData = async (url: string) => {
 const getTeams = async (league: League): Promise<Team[]> => {
   if (teams.size > 0) return teamArray(league);
 
-  const url = 'teams/' + league;
+  const url = 'teams';
   const data = await fetchAPIData(url);
 
   if (Array.isArray(data)) {
@@ -135,8 +133,8 @@ const getTeam = async (id: number): Promise<Team | null> => {
   const data = await fetchAPIData(url);
   // console.log(data);
 
-  if (data && data[0] && isTeamInfo(data[0])) {
-    const teamInfo: TeamInfo = data[0];
+  if (isTeamInfo(data)) {
+    const teamInfo: TeamInfo = data;
     team = { info: teamInfo };
     teams.set(id, team);
     console.log(team);
@@ -160,7 +158,7 @@ const loadTeamInfo = async (id: number): Promise<Team | null> => {
 const getSeason = () => {
   const date = new Date();
   return date.getFullYear() - (date.getMonth() > 5 ? 0 : 1);
-}
+};
 
 const getSeasonDate = () => {
   const year = getSeason();

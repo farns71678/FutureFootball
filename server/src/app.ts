@@ -1,3 +1,4 @@
+import cors from 'cors';
 import express from 'express';
 import config from './config/config.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -6,8 +7,12 @@ const app = express();
 
 app.use(express.json());
 
-// api routes 
-// todo: implement Access-Control-Allow-Origin
+if (config.nodeEnv === 'development') {
+  app.use(cors());
+}
+
+// api routes
+// todo: implement Access-Control-Allow-Origin (only in development for web)
 app.use(apiRoutes);
 
 app.use(errorHandler);

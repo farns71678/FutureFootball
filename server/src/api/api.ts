@@ -34,7 +34,7 @@ const fetchAPIData = async (url: string) => {
 
   if (!res.ok) {
     console.error(`Unable to fetch ${url}`);
-    res.text().then(text => console.error(text));
+    res.text().then((text) => console.error(text));
     return null;
   }
   const data = await res.json();
@@ -44,13 +44,14 @@ const fetchAPIData = async (url: string) => {
 
 /**
  * Get teams from api
+ * todo: investigate why not all teams from /teams are TeamInfo
  */
-const getTeams = async (league: League): Promise<TeamInfo[] | null> => {
-  const url = `teams?league=${league}`;
+const getTeams = async (league: League | undefined = undefined): Promise<TeamInfo[] | null> => {
+  const url = league ? `teams?league=${league}` : 'teams';
   const data = await fetchAPIData(url);
 
-  if (Array.isArray(data) && data.length > 0 && data.every((team) => isTeamInfo(team))) {
-    return data as TeamInfo[];
+  if (Array.isArray(data) && data.length > 0) {
+    return data.filter((team) => isTeamInfo(team)) as TeamInfo[];
   }
 
   return null;
@@ -71,11 +72,10 @@ const getTeamInfo = async (id: number): Promise<TeamInfo | null> => {
   return null;
 };
 
-
 const getSeason = () => {
   const date = new Date();
   return date.getFullYear() - (date.getMonth() > 5 ? 0 : 1);
-}
+};
 
 const getSeasonDate = (year: number | undefined = undefined) => {
   if (!year) year = getSeason();
@@ -93,8 +93,7 @@ const getTeamStats = async (id: number, season: number | undefined = undefined):
   if (Array.isArray(data) && data.every((stat) => isTeamStat(stat))) {
     const stats = data as TeamStat[];
     return stats;
-  }
-  else console.log(JSON.stringify(data));
+  } else console.log(JSON.stringify(data));
 
   return null;
 };

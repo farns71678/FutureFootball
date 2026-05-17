@@ -150,7 +150,9 @@ const Home = () => {
 
   const rounds: StatRound[] = ['regular-season', 'post-season', 'preseason'] as const;
 
-  const [roundFilters, setRoundFilters] = useState(rounds.map((round) => ({ round, visible: true })));
+  const [roundFilters, setRoundFilters] = useState(
+    rounds.map((round) => ({ round, visible: round === 'regular-season' }))
+  );
 
   const [displayLeagues, setDisplayLeagues] = useState(getDisplayLeagues([...leagueTrios], roundFilters));
 
@@ -231,6 +233,7 @@ const Home = () => {
                         styles.filter_option,
                         pressed ? styles.filter_option_pressed : undefined,
                       ]}
+                      key={'filter-option-' + filter.round}
                       onPress={() => toggleStatFilter(filter.round)}
                     >
                       <FontAwesome name={filter.visible ? 'circle' : 'circle-o'} size={20} color={Theme.main} />
@@ -246,7 +249,7 @@ const Home = () => {
         </View>
 
         {displayLeagues.map((trio) => (
-          <View>
+          <View key={'display-league-' + trio.league}>
             <View style={{ flexDirection: 'row', alignItems: 'center', padding: 4, marginBottom: 4 }}>
               <ThemedText type={'subtitle'}>{trio.league} Teams</ThemedText>
               <Pressable
