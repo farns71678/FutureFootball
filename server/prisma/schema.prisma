@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  password       String // should be salted and encrypted
+  name           String
+  picture        Bytes?
+  createdAt      DateTime @default(now())
+  picks          Picks    @relation(fields: [], references: [])
+  picksFinalized Boolean  @default(false)
+  picksSeason    Int // season year
+  groups         Group[]
+}
+
+model Group {
+  id      Int    @id @default(autoincrement())
+  owner   User   @relation(fields: [ownerId], references: [id], "GroupToOwner")
+  ownerId Int
+  members User[] // does not include the owner
+  season  Int // season year
+  picture Bytes?
+}
+
+// may not use group rules
+// model GroupRules {
+//     maxTeams Int @default(3)
+// }
+
+model Picks {
+  nfl   LeaguePicks @relation(fields: [], references: [])
+  ncaa  LeaguePicks @relation(fields: [], references: [])
+  users User[]
+}
+
+model LeaguePicks {
+  league League
+  teams  Int[]
+  picks  Picks[]
+}
+
+enum League {
+  NFL
+  NCAA
+}
