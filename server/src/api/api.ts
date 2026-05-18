@@ -72,7 +72,7 @@ const getTeamInfo = async (id: number): Promise<TeamInfo | null> => {
   return null;
 };
 
-const getSeason = () => {
+export const getSeason = () => {
   const date = new Date();
   return date.getFullYear() - (date.getMonth() > 5 ? 0 : 1);
 };

@@ -13,42 +13,64 @@ datasource db {
 }
 
 model User {
-  id             Int      @id @default(autoincrement())
-  email          String   @unique
-  password       String // should be salted and encrypted
-  name           String
-  picture        Bytes?
-  createdAt      DateTime @default(now())
-  picks          Picks    @relation(fields: [], references: [])
-  picksFinalized Boolean  @default(false)
-  picksSeason    Int // season year
-  groups         Group[]
+  id          Int           @id @default(autoincrement())
+  email       String        @unique
+  password    String // should be salted and encrypted
+  name        String
+  picture     Bytes?
+  createdAt   DateTime      @default(now())
+  picks       UserPicks?
+  groupsOwned Group[]
+  memberships GroupMember[]
+}
+
+model UserPicks {
+  id        Int               @id @default(autoincrement())
+  user      User              @relation(fields: [userId], references: [id])
+  userId    Int               @unique
+  picks     UserLeaguePicks[]
+  season    Int // server needs to clear picks if from a previous season
+  finalized Boolean
 }
 
 model Group {
-  id      Int    @id @default(autoincrement())
-  owner   User   @relation(fields: [ownerId], references: [id], "GroupToOwner")
-  ownerId Int
-  members User[] // does not include the owner
-  season  Int // season year
-  picture Bytes?
+  id        Int           @id @default(autoincrement())
+  owner     User          @relation(fields: [ownerId], references: [id])
+  ownerId   Int
+  name      String
+  picture   Bytes?
+  createdAt DateTime      @default(now())
+  members   GroupMember[]
 }
 
-// may not use group rules
-// model GroupRules {
-//     maxTeams Int @default(3)
-// }
+model GroupMember {
+  id          Int                 @id @default(autoincrement())
+  group       Group               @relation(fields: [groupId], references: [id])
+  groupId     Int
+  user        User                @relation(fields: [userId], references: [id])
+  userId      Int
+  memberPicks MemberLeaguePicks[]
+  season      Int // server needs to clear picks if from a previous season
 
-model Picks {
-  nfl   LeaguePicks @relation(fields: [], references: [])
-  ncaa  LeaguePicks @relation(fields: [], references: [])
-  users User[]
+  @@unique([groupId, userId])
 }
 
-model LeaguePicks {
-  league League
-  teams  Int[]
-  picks  Picks[]
+model UserLeaguePicks {
+  userPicks UserPicks @relation(fields: [userId], references: [id])
+  userId    Int
+  league    League
+  teams     Int[]
+
+  @@id([userId, league])
+}
+
+model MemberLeaguePicks {
+  member   GroupMember @relation(fields: [memberId], references: [id])
+  memberId Int
+  league   League
+  teams    Int[]
+
+  @@id([memberId, league])
 }
 
 enum League {

@@ -49,4 +49,4 @@ storage-test.json
 client/.gitignore
 
 
-src/generated/prisma
+server/src/generated
