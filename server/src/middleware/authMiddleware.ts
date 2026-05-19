@@ -9,25 +9,6 @@ export const getJWTSecret = () => {
   return config.jwtSecret + getSeason();
 };
 
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.cookies.jwt;
-
-  if (token) {
-    const secret = getJWTSecret();
-    jwt.verify(token, secret, (err: VerifyErrors | null, decodedToken: any) => {
-      if (err) {
-        console.log(err.message);
-        res.status(401).json({ error: 'Not logged in' });
-      } else {
-        console.log(decodedToken);
-        next();
-      }
-    });
-  } else {
-    res.status(401).json({ error: 'Not logged in' });
-  }
-};
-
 export const checkUser = (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies.jwt;
 
@@ -46,5 +27,16 @@ export const checkUser = (req: Request, res: Response, next: NextFunction) => {
   } else {
     res.locals.user = null;
     next();
+  }
+};
+
+// must go after check user
+export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  const user = res.locals.user;
+
+  if (user) {
+    next();
+  } else {
+    res.status(401).json({ message: 'Not Logged in' });
   }
 };

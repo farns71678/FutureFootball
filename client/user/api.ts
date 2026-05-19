@@ -89,7 +89,7 @@ const teamArray = (league?: League): Team[] => {
 };
 
 const fetchAPIData = async (url: string) => {
-  const res = await fetch(process.env.EXPO_PUBLIC_SERVER_URL + url);
+  const res = await fetch(process.env.EXPO_PUBLIC_SERVER_URL + 'api/' + url);
 
   if (!res.ok) {
     console.error(`Unable to fetch ${url}`);

@@ -9,13 +9,13 @@ export const teamInfo_get = async (req: Request, res: Response) => {
 
     const data = await getTeamInfo(id);
     if (data === null) {
-      res.status(500).json({ error: 'Unable to get team info' });
+      res.status(500).json({ message: 'Unable to get team info' });
       return;
     }
 
     res.json(data);
   } else {
-    res.status(400).json({ error: 'Team ID required' });
+    res.status(400).json({ message: 'Team ID required' });
   }
 };
 
@@ -29,13 +29,13 @@ export const teamStats_get = async (req: Request, res: Response) => {
 
     const data = await getTeamStats(id, season);
     if (data === null) {
-      res.status(500).json({ error: 'Unable to get team stats' });
+      res.status(500).json({ message: 'Unable to get team stats' });
       return;
     }
 
     res.json(data);
   } else {
-    res.status(400).json({ error: 'Team ID required' });
+    res.status(400).json({ message: 'Team ID required' });
   }
 };
 
@@ -49,20 +49,20 @@ export const team_get = async (req: Request, res: Response) => {
 
     const data = await getTeam(id, season);
     if (data === null) {
-      res.status(500).json({ error: 'Unable to get team' });
+      res.status(500).json({ message: 'Unable to get team' });
       return;
     }
 
     res.json(data);
   } else {
-    res.status(400).json({ error: 'Invalid query' });
+    res.status(400).json({ message: 'Invalid query' });
   }
 };
 
 export const teams_get = async (req: Request, res: Response) => {
   const data = await getTeams();
   if (data === null) {
-    res.status(500).json({ error: 'Unable to get league teams' });
+    res.status(500).json({ message: 'Unable to get league teams' });
     return;
   }
 
@@ -77,12 +77,12 @@ export const leagueTeams_get = async (req: Request, res: Response) => {
 
     const data = await getTeams(league);
     if (data === null) {
-      res.status(500).json({ error: 'Unable to get league teams' });
+      res.status(500).json({ message: 'Unable to get league teams' });
       return;
     }
 
     res.json(data);
   } else {
-    res.status(400).json({ error: 'League required' });
+    res.status(400).json({ message: 'League required' });
   }
 };

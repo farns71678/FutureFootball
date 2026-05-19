@@ -30,7 +30,7 @@ model UserPicks {
   userId    Int               @unique
   picks     UserLeaguePicks[]
   season    Int // server needs to clear picks if from a previous season
-  finalized Boolean
+  finalized Boolean // todo: set this to default false
 }
 
 model Group {
