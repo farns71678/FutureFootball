@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
+import UserDB from '../db/user.js';
 import { User } from '../generated/prisma/client.js';
-import UserDB from '../models/user.js';
 
 export const userPicks_get = async (req: Request, res: Response) => {
   const user: User = res.locals.user;

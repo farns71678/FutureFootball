@@ -1,8 +1,9 @@
 import bcrypt from 'bcrypt';
 import { assert, object, refine, size, string } from 'superstruct';
 import isEmail from 'validator/lib/isEmail.js';
-import { prisma } from '../db/db.js';
+import { getSeason } from '../api/api.js';
 import { League } from '../generated/prisma/enums.js';
+import { prisma } from './db.js';
 
 const Signup = object({
   email: refine(string(), 'email', (v) => isEmail.default(v)),
@@ -64,8 +65,36 @@ interface PickStorage {
   teams: number[];
 }
 
-const setPicks = async (userId: number, picks: PickStorage[]) => {
-  // todo: implement creating picks
+const setPicks = async (userId: number, nfl: number[], ncaa: number[]) => {
+  const picks = await prisma.userPicks.findUnique({ where: { userId }, include: { picks: true } });
+
+  if (picks && picks.finalized && picks.season === getSeason()) return null;
+
+  await prisma.userLeaguePicks.deleteMany({
+    where: { userId: userId },
+  });
+
+  await prisma.userPicks.upsert({
+    where: { userId },
+    update: {
+      season: getSeason(),
+      finalized: false,
+      picks: {
+        create: [{ us }], // here
+      },
+    },
+    create: {
+      season: getSeason(),
+      finalized: false,
+      picks: {
+        create: [
+          { league: 'NFL', teams: nfl },
+          { league: 'NCAA', teams: ncaa },
+        ],
+      },
+      userId,
+    },
+  });
 };
 
 const UserDB = { create, login, picks, memberships, groupsOwned };
