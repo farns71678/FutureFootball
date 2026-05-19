@@ -17,14 +17,14 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
     jwt.verify(token, secret, (err: VerifyErrors | null, decodedToken: any) => {
       if (err) {
         console.log(err.message);
-        res.redirect('/login');
+        res.status(401).json({ error: 'Not logged in' });
       } else {
         console.log(decodedToken);
         next();
       }
     });
   } else {
-    res.redirect('/login');
+    res.status(401).json({ error: 'Not logged in' });
   }
 };
 
