@@ -4,7 +4,7 @@ import { getTeamStats } from '@/user/api';
 import { isFinalized, isLoaded, leagueTrios } from '@/user/teams';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 type LoadedState = 'loading' | 'loaded' | 'error' | 'finalized';
@@ -12,8 +12,6 @@ type LoadedState = 'loading' | 'loaded' | 'error' | 'finalized';
 const index = () => {
   const router = useRouter();
   const [loadedState, setLoadedState] = useState('loading' as LoadedState);
-
-  useEffect(() => {}, []);
 
   useFocusEffect(
     useCallback(() => {

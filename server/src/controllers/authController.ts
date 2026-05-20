@@ -18,7 +18,13 @@ export const signup_post = async (req: Request, res: Response) => {
   const user = await UserDB.create(email, name, password);
   const token = createToken(user.id);
 
-  res.status(201).json({ message: 'Created', user, token });
+  res
+    .status(201)
+    .json({
+      message: 'Created',
+      user: { createdAt: user.createdAt, email: user.email, id: user.id, name: user.name, picture: user.picture },
+      token,
+    });
 };
 
 export const login_post = async (req: Request, res: Response) => {

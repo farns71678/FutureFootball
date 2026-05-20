@@ -1,25 +1,22 @@
-import Theme from "@/constants/Theme";
-import React from "react";
-import { StyleSheet, Text, TextProps } from "react-native";
+import Theme from '@/constants/Theme';
+import React from 'react';
+import { StyleSheet, Text, TextProps } from 'react-native';
 
 export type ThemedTextPrompts = TextProps & {
-  type?: "default" | "title" | "defaultSemiBold" | "subtitle" | "link";
+  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link' | 'error';
 };
 
-const ThemedText = ({
-  style,
-  type = "default",
-  ...props
-}: ThemedTextPrompts) => {
+const ThemedText = ({ style, type = 'default', ...props }: ThemedTextPrompts) => {
   return (
     <Text
       style={[
         { color: Theme.text },
-        type == "default" ? styles.default : undefined,
-        type == "title" ? styles.title : undefined,
-        type == "defaultSemiBold" ? styles.defaultSemiBold : undefined,
-        type == "subtitle" ? styles.subtitle : undefined,
-        type == "link" ? styles.link : undefined,
+        type === 'default' ? styles.default : undefined,
+        type === 'title' ? styles.title : undefined,
+        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
+        type === 'subtitle' ? styles.subtitle : undefined,
+        type === 'link' ? styles.link : undefined,
+        type === 'error' ? styles.error : undefined,
         style,
       ]}
       {...props}
@@ -37,20 +34,26 @@ const styles = StyleSheet.create({
   defaultSemiBold: {
     fontSize: 16,
     lineHeight: 24,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   title: {
     fontSize: 32,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     lineHeight: 32,
   },
   subtitle: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   link: {
     lineHeight: 30,
     fontSize: 16,
     color: Theme.main,
+  },
+  error: {
+    fontSize: 15,
+    color: Theme.error,
+    fontWeight: '600',
+    lineHeight: 24,
   },
 });

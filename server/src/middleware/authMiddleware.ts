@@ -10,9 +10,9 @@ export const getJWTSecret = () => {
 };
 
 export const checkUser = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.cookies.jwt;
+  const token = req.headers.token;
 
-  if (token) {
+  if (token && typeof token === 'string') {
     const secret = getJWTSecret();
     jwt.verify(token, secret, async (err: VerifyErrors | null, decodedToken: any) => {
       if (err) {
