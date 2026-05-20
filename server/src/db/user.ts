@@ -74,13 +74,16 @@ const setPicks = async (userId: number, nfl: number[], ncaa: number[]) => {
     where: { userId: userId },
   });
 
-  await prisma.userPicks.upsert({
+  return await prisma.userPicks.upsert({
     where: { userId },
     update: {
       season: getSeason(),
       finalized: false,
       picks: {
-        create: [{ us }], // here
+        create: [
+          { league: 'NFL', teams: nfl },
+          { league: 'NCAA', teams: ncaa },
+        ],
       },
     },
     create: {
@@ -97,6 +100,6 @@ const setPicks = async (userId: number, nfl: number[], ncaa: number[]) => {
   });
 };
 
-const UserDB = { create, login, picks, memberships, groupsOwned };
+const UserDB = { create, login, picks, memberships, groupsOwned, setPicks };
 
 export default UserDB;

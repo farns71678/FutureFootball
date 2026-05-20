@@ -21,3 +21,20 @@ export const userGroupsOwned_get = async (req: Request, res: Response) => {
   const groupsOwned = await UserDB.groupsOwned(user.id);
   res.json({ groups: groupsOwned });
 };
+
+export const userPicks_post = async (req: Request, res: Response) => {
+  const user: User = res.locals.user;
+  const { nfl, ncaa } = req.body;
+
+  if (
+    Array.isArray(nfl) &&
+    nfl.every((teamId) => typeof teamId === 'number') &&
+    Array.isArray(ncaa) &&
+    ncaa.every((teamId) => typeof teamId === 'number')
+  ) {
+    const picks = await UserDB.setPicks(user.id, nfl, ncaa);
+    res.json({ picks });
+  } else {
+    res.status(400).json({ message: 'Invalid query body' });
+  }
+};
