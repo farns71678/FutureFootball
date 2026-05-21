@@ -3,12 +3,15 @@ import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
 import { leagueTrios, saveData } from '@/user/teams';
 import { TeamTrio } from '@/user/teamTrio';
+import { useAuthStore } from '@/utils/authStore';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-export default function Index() {
+export default function Launchpad() {
+  const { user } = useAuthStore();
+
   const checkFilledTeams = () => {
     return leagueTrios && leagueTrios.every((trio) => trio.size() === TeamTrio.maxTeams);
   };
@@ -83,7 +86,6 @@ export default function Index() {
                 //   })
                 // ).then(() => router.navigate('/home'))
                 router.navigate('/');
-                
               }}
             >
               <ThemedText type="defaultSemiBold" style={{ fontSize: 20 }}>

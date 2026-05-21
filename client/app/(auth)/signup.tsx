@@ -1,10 +1,13 @@
 import { Spacer, ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
+import { useAuthStore } from '@/utils/authStore';
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput } from 'react-native';
 
 const Signup = () => {
+  const { signup } = useAuthStore();
+
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -12,28 +15,14 @@ const Signup = () => {
   const [signupStatus, setSignupStatus] = useState('input' as 'input' | 'loading');
   const [signupError, setSignupError] = useState('');
 
-  const signup = async () => {
-    setSignupStatus('loading');
-
+  const signupButtonClicked = async () => {
     try {
-      const res = await fetch(process.env.EXPO_PUBLIC_SERVER_URL + 'auth/signup', {
-        method: 'POST',
-        body: JSON.stringify({ email: email.trim(), name: name.trim(), password }),
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        console.error(data);
-        setSignupError(data.message || 'Unable to signup');
-        setSignupStatus('input');
-      } else {
-        // todo: redirect to somewhere else
-      }
+      setSignupStatus('loading');
+      await signup(email.trim(), name.trim(), password);
     } catch (err) {
       console.error(err);
       setSignupStatus('input');
-      setSignupError('Unable to signup');
+      setSignupError('' + err);
     }
   };
 
@@ -60,7 +49,7 @@ const Signup = () => {
 
       <Spacer height={15} width={30} />
 
-      <Pressable style={styles.signup_btn} disabled={signupStatus === 'loading'} onPress={signup}>
+      <Pressable style={styles.signup_btn} disabled={signupStatus === 'loading'} onPress={signupButtonClicked}>
         {signupStatus === 'loading' ? (
           <>
             <ActivityIndicator color={Theme.text} style={{ marginRight: 6 }} />

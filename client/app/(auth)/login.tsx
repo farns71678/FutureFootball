@@ -1,14 +1,29 @@
 import { Spacer, ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
+import { useAuthStore } from '@/utils/authStore';
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, TextInput } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput } from 'react-native';
 
-const Signup = () => {
+const Login = () => {
+  const { login } = useAuthStore();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const login = async () => {};
+  const [loginStatus, setLoginStatus] = useState('input' as 'input' | 'loading');
+  const [loginError, setLoginError] = useState('');
+
+  const loginButtonPressed = async () => {
+    try {
+      setLoginStatus('loading');
+      await login(email.trim(), password);
+    } catch (error) {
+      console.error(error);
+      setLoginStatus('input');
+      setLoginError('' + error);
+    }
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -26,12 +41,21 @@ const Signup = () => {
         secureTextEntry={true}
         onChangeText={(text) => setPassword(text)}
       ></TextInput>
-      <ThemedText type="error"></ThemedText>
+      <ThemedText type="error" style={{ marginHorizontal: 24 }}>
+        {loginError}
+      </ThemedText>
 
       <Spacer height={15} width={30} />
 
-      <Pressable style={styles.login_btn}>
-        <ThemedText type="defaultSemiBold">Login</ThemedText>
+      <Pressable style={styles.login_btn} disabled={loginStatus === 'loading'} onPress={loginButtonPressed}>
+        {loginStatus === 'loading' ? (
+          <>
+            <ActivityIndicator color={Theme.text} style={{ marginRight: 6 }} />
+            <ThemedText type="defaultSemiBold">Loading</ThemedText>
+          </>
+        ) : (
+          <ThemedText type="defaultSemiBold">Login</ThemedText>
+        )}
       </Pressable>
 
       <Spacer height={30} width={30} />
@@ -45,7 +69,7 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Login;
 
 const styles = StyleSheet.create({
   container: {
