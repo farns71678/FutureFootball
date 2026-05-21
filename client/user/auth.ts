@@ -1,14 +1,14 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
-import { User } from './db-types';
+import { UserDB } from './db-types';
+import User from './user';
 
 // todo: in ios the storage will persist accross app installation. Needs to be taken into account
 
-
 type StorageHandler = {
-  setKey: (key: string, val: string) => Promise<void>,
-  getKey: (key: string) => Promise<string | null>,
-  deleteKey: (key: string) => Promise<void>
+  setKey: (key: string, val: string) => Promise<void>;
+  getKey: (key: string) => Promise<string | null>;
+  deleteKey: (key: string) => Promise<void>;
 };
 
 const webStorageHandler: StorageHandler = {
@@ -20,7 +20,7 @@ const webStorageHandler: StorageHandler = {
   },
   deleteKey: async (key: string) => {
     localStorage.removeItem(key);
-  }
+  },
 };
 
 const mobileStorageHandler: StorageHandler = {
@@ -33,18 +33,18 @@ const mobileStorageHandler: StorageHandler = {
   },
   deleteKey: async (key: string) => {
     await SecureStore.deleteItemAsync(key);
-  }
+  },
 };
 
 const storageHandler = Platform.OS === 'web' ? webStorageHandler : mobileStorageHandler;
 
 const tokenKey = 'user_token';
 
-const authUser = async (token: string): Promise<User | null> => {
-  const res = await fetch('auth/login', { method: 'POST', headers: { 'token': token } });
+const authUser = async (token: string): Promise<UserDB | null> => {
+  const res = await fetch('auth/login', { method: 'POST', headers: { token: token } });
 
   if (res.ok) {
-    return (await res.json()) as User;
+    return (await res.json()) as UserDB;
   }
   return null;
 };
@@ -52,8 +52,11 @@ const authUser = async (token: string): Promise<User | null> => {
 const login = async (): Promise<boolean> => {
   const token = await storageHandler.getKey(tokenKey);
   if (token) {
-    const user = await authUser(token);
-    return user ? true : false;
+    const userData = await authUser(token);
+    if (userData) {
+      await User.login(userData);
+      return true;
+    } else return false;
   }
   return false;
 };

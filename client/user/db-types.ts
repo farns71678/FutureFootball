@@ -1,6 +1,15 @@
-export type User = {
-    name: string,
-    email: string,
-    picture?: Blob;
-    id: number,
+import { League } from './api';
+
+export type UserDB = {
+  name: string;
+  email: string;
+  picture?: Uint8Array;
+  picks: {
+    season: number;
+    finalized: boolean;
+    picks: {
+      league: League;
+      teams: number[];
+    }[];
+  };
 };

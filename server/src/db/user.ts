@@ -15,11 +15,45 @@ const create = async (email: string, name: string, password: string) => {
   assert({ email, name, password }, Signup);
   const salt = await bcrypt.genSalt();
   password = await bcrypt.hash(password, salt);
-  return await prisma.user.create({ data: { email, name, password } });
+  return await prisma.user.create({
+    data: {
+      email,
+      name,
+      password,
+      picks: {
+        create: {
+          season: getSeason(),
+          finalized: false,
+          picks: {
+            create: [
+              { league: 'NFL', teams: [] },
+              { league: 'NCAA', teams: [] },
+            ],
+          },
+        },
+      },
+    },
+    include: {
+      picks: {
+        include: {
+          picks: true,
+        },
+      },
+    },
+  });
 };
 
 const login = async (email: string, password: string) => {
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: {
+      picks: {
+        include: {
+          picks: true,
+        },
+      },
+    },
+  });
 
   if (user) {
     const auth = await bcrypt.compare(password, user.password);

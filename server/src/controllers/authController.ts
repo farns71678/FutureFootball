@@ -18,13 +18,22 @@ export const signup_post = async (req: Request, res: Response) => {
   const user = await UserDB.create(email, name, password);
   const token = createToken(user.id);
 
-  res
-    .status(201)
-    .json({
-      message: 'Created',
-      user: { createdAt: user.createdAt, email: user.email, id: user.id, name: user.name, picture: user.picture },
-      token,
-    });
+  res.status(201).json({
+    message: 'Created',
+    user: {
+      email: user.email,
+      name: user.name,
+      picture: user.picture,
+      picks: user.picks
+        ? {
+            season: user.picks.season,
+            finalized: user.picks.finalized,
+            picks: user.picks.picks.map((pick) => ({ league: pick.league, teams: pick.teams })),
+          }
+        : null,
+    },
+    token,
+  });
 };
 
 export const login_post = async (req: Request, res: Response) => {
@@ -34,7 +43,22 @@ export const login_post = async (req: Request, res: Response) => {
     const user = await UserDB.login(email, password);
     const token = createToken(user.id);
 
-    res.status(200).json({ message: 'Logged in', user, token });
+    res.status(200).json({
+      message: 'Logged in',
+      user: {
+        email: user.email,
+        name: user.name,
+        picture: user.picture,
+        picks: user.picks
+          ? {
+              season: user.picks.season,
+              finalized: user.picks.finalized,
+              picks: user.picks.picks.map((pick) => ({ league: pick.league, teams: pick.teams })),
+            }
+          : null,
+      },
+      token,
+    });
   } catch (err: any) {
     res.status(400).json({ message: err.message || 'Unable to login' });
   }
