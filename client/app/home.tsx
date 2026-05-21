@@ -2,8 +2,8 @@ import TeamRow from '@/components/TeamRow';
 import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
 import { League, StatRound, Team, TeamInfo } from '@/user/api';
-import { leagueTrios } from '@/user/teams';
 import { TeamTrio } from '@/user/teamTrio';
+import { useAuthStore } from '@/utils/authStore';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Entypo from '@expo/vector-icons/Entypo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -85,6 +85,8 @@ interface DisplayLeague {
 }
 
 const Home = () => {
+  const { user } = useAuthStore();
+
   const getTeamFilteredStats = (team: Team, filters: StatFilter[] | undefined = undefined): TotalStats => {
     return team.stats
       ? team.stats.reduce(
@@ -107,12 +109,14 @@ const Home = () => {
   const getTotalFilteredStats = (filters: StatFilter[] | undefined = undefined): TotalStats => {
     const stats: TotalStats = { wins: 0, loses: 0 };
 
-    leagueTrios.forEach((trio) => {
-      trio.getTeams().forEach((team) => {
-        const teamStats = getTeamFilteredStats(team, filters);
-        stats.wins += teamStats.wins;
-        stats.loses += teamStats.loses;
-      });
+    [user!.nflPicks, user!.ncaaPicks].forEach((trio) => {
+      if (trio) {
+        trio.getTeams().forEach((team) => {
+          const teamStats = getTeamFilteredStats(team, filters);
+          stats.wins += teamStats.wins;
+          stats.loses += teamStats.loses;
+        });
+      }
     });
 
     return stats;
@@ -154,14 +158,16 @@ const Home = () => {
     rounds.map((round) => ({ round, visible: round === 'regular-season' }))
   );
 
-  const [displayLeagues, setDisplayLeagues] = useState(getDisplayLeagues([...leagueTrios], roundFilters));
+  const [displayLeagues, setDisplayLeagues] = useState(
+    getDisplayLeagues([user!.nflPicks!, user!.ncaaPicks!], roundFilters)
+  );
 
   const [roundFiltersVisible, setRoundFiltersVisible] = useState(false);
 
   useEffect(() => {
     setTotalStats(getTotalFilteredStats(roundFilters));
 
-    setDisplayLeagues(getDisplayLeagues([...leagueTrios], roundFilters));
+    setDisplayLeagues(getDisplayLeagues([user!.nflPicks!], roundFilters));
   }, [roundFilters]);
 
   /**

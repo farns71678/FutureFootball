@@ -1,22 +1,24 @@
 import TeamTrioList from '@/components/TeamTrioList';
 import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
-import { leagueTrios, saveData } from '@/user/teams';
 import { TeamTrio } from '@/user/teamTrio';
 import { useAuthStore } from '@/utils/authStore';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 export default function Launchpad() {
-  const { user } = useAuthStore();
+  const { user, userToken, setLeaguePicks, finalizeTeams } = useAuthStore();
 
   const checkFilledTeams = () => {
-    return leagueTrios && leagueTrios.every((trio) => trio.size() === TeamTrio.maxTeams);
+    return user && [user.nflPicks, user.ncaaPicks].every((trio) => trio && trio.size() === TeamTrio.maxTeams);
   };
 
   const [filledTeams, setFilledTeams] = useState(checkFilledTeams());
+
+  const [finalizingState, setFinalizingState] = useState(false);
+  const [finalizingError, setFinalizingError] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -24,7 +26,8 @@ export default function Launchpad() {
     }, [])
   );
 
-  const onTeamTrioChanged = () => {
+  const onTeamTrioChanged = (trio: TeamTrio) => {
+    setLeaguePicks(trio.league, trio);
     setFilledTeams(checkFilledTeams());
   };
 
@@ -55,10 +58,18 @@ export default function Launchpad() {
         </View>
 
         {/* <ThemedText style={{color: "#ffffff"}}>Edit app/index.tsx to edit this screen.</ThemedText> */}
-        {leagueTrios.map((trio, index) => (
+        {[user?.ncaaPicks, user?.nflPicks].map((trio, index) => (
           <View key={'trio-container-' + index}>
-            <TeamTrioList trio={trio} onChange={onTeamTrioChanged} />
-            <View style={{ paddingTop: 16 }} />
+            {trio ? (
+              <>
+                <TeamTrioList trio={trio} onChange={() => onTeamTrioChanged(trio)} />
+                <View style={{ paddingTop: 16 }} />
+              </>
+            ) : (
+              <View style={{ flexDirection: 'row' }}>
+                <ActivityIndicator color="white" style={{ marginRight: 6 }} /> Loading
+              </View>
+            )}
           </View>
         ))}
 
@@ -66,32 +77,51 @@ export default function Launchpad() {
 
         <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
           {filledTeams ? (
-            <Pressable
-              style={({ pressed }) =>
-                pressed
-                  ? [styles.confirm_btn, { backgroundColor: styles.confirm_btn.backgroundColor + 'bb' }]
-                  : styles.confirm_btn
-              }
-              onPress={() => {
-                console.log('confirming teams');
-                saveData();
-                // Promise.all(
-                //   leagueTrios.map((trio) => {
-                //     return Promise.all(
-                //       trio.teams.map((team) => {
-                //         // todo: wait for team stats
-                //         return getTeamStats(team.info.id);
-                //       })
-                //     );
-                //   })
-                // ).then(() => router.navigate('/home'))
-                router.navigate('/');
-              }}
-            >
-              <ThemedText type="defaultSemiBold" style={{ fontSize: 20 }}>
-                Confirm Selection
-              </ThemedText>
-            </Pressable>
+            <>
+              <Pressable
+                style={({ pressed }) =>
+                  pressed
+                    ? [styles.confirm_btn, { backgroundColor: styles.confirm_btn.backgroundColor + 'bb' }]
+                    : styles.confirm_btn
+                }
+                disabled={!finalizingState}
+                onPress={async () => {
+                  setFinalizingState(true);
+                  setFinalizingError('');
+
+                  try {
+                    const res = await fetch('/user/finalizePicks', { method: 'GET', headers: { token: userToken! } });
+
+                    if (res.ok) {
+                      finalizeTeams();
+                      router.navigate('/');
+                    } else {
+                      const data = await res.json();
+                      setFinalizingState(false);
+                      setFinalizingError(data.message || 'Error finalizing teams');
+                    }
+                  } catch (error) {
+                    console.error(error);
+                    setFinalizingState(false);
+                    setFinalizingError('Error finalizing teams');
+                  }
+                }}
+              >
+                {!finalizingState ? (
+                  <ThemedText type="defaultSemiBold" style={{ fontSize: 20 }}>
+                    Confirm Selection
+                  </ThemedText>
+                ) : (
+                  <View style={{ flexDirection: 'row' }}>
+                    <ActivityIndicator color="white" style={{ marginRight: 6 }} />
+                    <ThemedText type="defaultSemiBold" style={{ fontSize: 20 }}>
+                      Loading
+                    </ThemedText>
+                  </View>
+                )}
+              </Pressable>
+              {finalizingError && <ThemedText type="error">{finalizingError}</ThemedText>}
+            </>
           ) : (
             <ThemedText>Add up to three teams</ThemedText>
           )}

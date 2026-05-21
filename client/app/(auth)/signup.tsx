@@ -18,6 +18,7 @@ const Signup = () => {
   const signupButtonClicked = async () => {
     try {
       setSignupStatus('loading');
+      setSignupError('');
       await signup(email.trim(), name.trim(), password);
     } catch (err) {
       console.error(err);

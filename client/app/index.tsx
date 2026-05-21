@@ -1,7 +1,8 @@
 import { ThemedText, ThemedView } from '@/components/themed/ThemedComponents';
 import Theme from '@/constants/Theme';
-import Auth from '@/user/auth';
-import User from '@/user/user';
+import { getSeason, getTeamStats, League } from '@/user/api';
+import { createTrio, TeamTrio } from '@/user/teamTrio';
+import { useAuthStore } from '@/utils/authStore';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
@@ -10,18 +11,71 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 type LoadedState = 'loading' | 'loaded' | 'error' | 'finalized';
 
 const index = () => {
+  const { user, userToken, setLeaguePicks, setDataLoaded } = useAuthStore();
+
   const router = useRouter();
   const [loadedState, setLoadedState] = useState('loading' as LoadedState);
 
-  useFocusEffect(
-    useCallback(async () => {
-      const loggedIn = await Auth.login();
+  const loadStats = async () => {
+    await Promise.all(
+      [user!.nflPicks!, user!.ncaaPicks!].map((trio) => {
+        return Promise.all(
+          trio.getTeams().map(async (team) => {
+            const stats = await getTeamStats(team.info.id);
+            if (stats) {
+              team.stats = stats;
+            } else throw new Error('Unable to load team stats');
+          })
+        );
+      })
+    );
+    setDataLoaded(true);
+  };
 
-      if (loggedIn) {
-        if (User.picksFinalized()) router.navigate('/home');
-        else router.navigate('/launchpad');
+  useFocusEffect(
+    useCallback(() => {
+      if (!user!.nflPicks || !user!.ncaaPicks) {
+        fetch('/user/picks', { method: 'GET', headers: { token: userToken! } })
+          .then((res) => {
+            res.json().then(async (data) => {
+              if (data.season === getSeason()) {
+                const picks: { league: League; teams: number[] }[] = data.picks;
+                Promise.all(
+                  picks.map((pick) =>
+                    createTrio(pick).then((trio) => {
+                      if (trio) setLeaguePicks(pick.league, trio);
+                      else throw 'Unable to load teams';
+                    })
+                  )
+                ).then(() => {
+                  if (user!.picksFinalized) {
+                    loadStats()
+                      .then(() => router.navigate('/home'))
+                      .catch((error) => {
+                        console.error(error);
+                        setLoadedState('error');
+                      });
+                  } else {
+                    router.navigate('/launchpad');
+                  }
+                });
+              } else {
+                const leagues: League[] = ['NFL', 'NCAA'] as const;
+                leagues.forEach((league: League) => setLeaguePicks(league, new TeamTrio(league)));
+              }
+            });
+          })
+          .catch((err) => {
+            console.error(err);
+            setLoadedState('error');
+          });
       } else {
-        router.navigate('/(auth)/login');
+        loadStats()
+          .then(() => router.navigate('/home'))
+          .catch((error) => {
+            console.error(error);
+            setLoadedState('error');
+          });
       }
     }, [])
   );

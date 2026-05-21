@@ -17,6 +17,7 @@ const Login = () => {
   const loginButtonPressed = async () => {
     try {
       setLoginStatus('loading');
+      setLoginError('');
       await login(email.trim(), password);
     } catch (error) {
       console.error(error);

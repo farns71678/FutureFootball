@@ -1,3 +1,4 @@
+import { League } from '@/user/api';
 import { UserDB } from '@/user/db-types';
 import { createTrio, TeamTrio } from '@/user/teamTrio';
 import { deleteItemAsync, getItem, setItem } from 'expo-secure-store';
@@ -21,9 +22,13 @@ type User = {
 type UserState = {
   user: User | null;
   userToken: string | null;
+  dataLoaded: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, name: string, password: string) => Promise<void>;
   logout: () => void;
+  setLeaguePicks: (league: League, trio: TeamTrio) => void;
+  finalizeTeams: () => void;
+  setDataLoaded: (loaded: boolean) => void;
 };
 
 const webStorageHandler = {
@@ -69,6 +74,7 @@ export const useAuthStore = create(
     (set) => ({
       user: null,
       userToken: null,
+      dataLoaded: false,
       login: async (email: string, password: string) => {
         try {
           const res = await fetch(process.env.EXPO_PUBLIC_SERVER_URL + 'auth/login', {
@@ -131,6 +137,39 @@ export const useAuthStore = create(
             userToken: null,
           };
         });
+      },
+      setLeaguePicks: (league: League, trio: TeamTrio) => {
+        set((state) => {
+          return {
+            ...state,
+            user: state.user
+              ? {
+                  ...state.user,
+                  nflPicks: league === 'NFL' ? trio : state.user?.nflPicks,
+                  ncaaPicks: league === 'NCAA' ? trio : state.user?.ncaaPicks,
+                }
+              : null,
+          };
+        });
+      },
+      finalizeTeams: async () => {
+        set((state) => {
+          return {
+            ...state,
+            user: state.user
+              ? {
+                  ...state.user,
+                  picksFinalized: true,
+                }
+              : null,
+          };
+        });
+      },
+      setDataLoaded: (loaded: boolean) => {
+        set((state) => ({
+          ...state,
+          dataLoaded: loaded,
+        }));
       },
     }),
     {
